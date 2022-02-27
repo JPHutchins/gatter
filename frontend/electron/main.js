@@ -7,7 +7,7 @@ const { fetch } = require("cross-fetch");
 let mainWindow;
 
 function createWindow() {
-    const child = spawn("python3", ["../backend/main.py"]);
+    const child = spawn(process.env.PYTHON_ALIAS, ["../backend/main.py"]);
     child.stdout.on('data', (out) => {
         console.log(out.toString());
     });

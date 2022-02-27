@@ -4,3 +4,6 @@
 [ALIASES]
     tests=pytest $ENVR_ROOT/backend/tests
     dev=npm run dev --prefix $ENVR_ROOT/frontend
+[VARIABLES]
+    # Change this from python3 -> python for Windows environment
+    PYTHON_ALIAS=python3
