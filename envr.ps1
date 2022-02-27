@@ -451,6 +451,8 @@ unsource -nondestructive
 # Save the old path
 Copy-Item -Path Env:PATH -Destination Env:_OLD_PATH
 
+New-Variable -Name ENVR_ROOT -Description "envr parent folder path" -Scope Global -Option ReadOnly -Visibility Public -Value $(pwd)
+
 # parse the environment file and setup
 $_CATEGORY = "INITIAL"
 $_NEW_ENVIRONMENT_VARS = @()
@@ -517,23 +519,28 @@ foreach ($line in Get-Content $_ENVR_CONFIG) {
         $_TEMP_ARRAY = $VALUE.split(" ")
         $_ALIAS_COMMAND_ARR += ,$_TEMP_ARRAY[0]
         if ($_TEMP_ARRAY.Length -ge 2) {
-            $_ALIAS_ARGS_ARR += ,$_TEMP_ARRAY[1..($_TEMP_ARRAY.Length-1)]
+            $args = @()
+            for (($i = 1); $i -lt $_TEMP_ARRAY.Length + 1; $i++) {
+                # Expand the args to use any environment variables 
+                $args += ,$ExecutionContext.InvokeCommand.ExpandString($_TEMP_ARRAY[$i])
+            }
+            $_ALIAS_ARGS_ARR += ,$args
         }
         else {
             $_ALIAS_ARGS_ARR += ,""
         }
 
         # Hack to support aliases with parameters
-        function _ENVR_ALIAS_FN_0 { . $_ALIAS_COMMAND_ARR[0] $ExecutionContext.InvokeCommand.ExpandString($_ALIAS_ARGS_ARR[0]) }
-        function _ENVR_ALIAS_FN_1 { . $_ALIAS_COMMAND_ARR[1] $ExecutionContext.InvokeCommand.ExpandString($_ALIAS_ARGS_ARR[1]) }
-        function _ENVR_ALIAS_FN_2 { . $_ALIAS_COMMAND_ARR[2] $ExecutionContext.InvokeCommand.ExpandString($_ALIAS_ARGS_ARR[2]) }
-        function _ENVR_ALIAS_FN_3 { . $_ALIAS_COMMAND_ARR[3] $ExecutionContext.InvokeCommand.ExpandString($_ALIAS_ARGS_ARR[3]) }
-        function _ENVR_ALIAS_FN_4 { . $_ALIAS_COMMAND_ARR[4] $ExecutionContext.InvokeCommand.ExpandString($_ALIAS_ARGS_ARR[4]) }
-        function _ENVR_ALIAS_FN_5 { . $_ALIAS_COMMAND_ARR[5] $ExecutionContext.InvokeCommand.ExpandString($_ALIAS_ARGS_ARR[5]) }
-        function _ENVR_ALIAS_FN_6 { . $_ALIAS_COMMAND_ARR[6] $ExecutionContext.InvokeCommand.ExpandString($_ALIAS_ARGS_ARR[6]) }
-        function _ENVR_ALIAS_FN_7 { . $_ALIAS_COMMAND_ARR[7] $ExecutionContext.InvokeCommand.ExpandString($_ALIAS_ARGS_ARR[7]) }
-        function _ENVR_ALIAS_FN_8 { . $_ALIAS_COMMAND_ARR[8] $ExecutionContext.InvokeCommand.ExpandString($_ALIAS_ARGS_ARR[8]) }
-        function _ENVR_ALIAS_FN_9 { . $_ALIAS_COMMAND_ARR[9] $ExecutionContext.InvokeCommand.ExpandString($_ALIAS_ARGS_ARR[9]) }
+        function _ENVR_ALIAS_FN_0 { . $_ALIAS_COMMAND_ARR[0] $_ALIAS_ARGS_ARR[0] }
+        function _ENVR_ALIAS_FN_1 { . $_ALIAS_COMMAND_ARR[1] $_ALIAS_ARGS_ARR[1] }
+        function _ENVR_ALIAS_FN_2 { . $_ALIAS_COMMAND_ARR[2] $_ALIAS_ARGS_ARR[2] }
+        function _ENVR_ALIAS_FN_3 { . $_ALIAS_COMMAND_ARR[3] $_ALIAS_ARGS_ARR[3] }
+        function _ENVR_ALIAS_FN_4 { . $_ALIAS_COMMAND_ARR[4] $_ALIAS_ARGS_ARR[4] }
+        function _ENVR_ALIAS_FN_5 { . $_ALIAS_COMMAND_ARR[5] $_ALIAS_ARGS_ARR[5] }
+        function _ENVR_ALIAS_FN_6 { . $_ALIAS_COMMAND_ARR[6] $_ALIAS_ARGS_ARR[6] }
+        function _ENVR_ALIAS_FN_7 { . $_ALIAS_COMMAND_ARR[7] $_ALIAS_ARGS_ARR[7] }
+        function _ENVR_ALIAS_FN_8 { . $_ALIAS_COMMAND_ARR[8] $_ALIAS_ARGS_ARR[8] }
+        function _ENVR_ALIAS_FN_9 { . $_ALIAS_COMMAND_ARR[9] $_ALIAS_ARGS_ARR[9] }
         Set-Alias -Name $KEY -Value "_ENVR_ALIAS_FN_$_ALIAS_FN_INDEX"
         $_NEW_ALIASES += $line
         $_ALIAS_FN_INDEX += 1
@@ -588,8 +595,6 @@ if (-not $Env:ENVIRONMENT_DISABLE_PROMPT) {
         _OLD_VIRTUAL_PROMPT
     }
 }
-
-New-Variable -Name ENVR_ROOT -Description "envr parent folder path" -Scope Global -Option ReadOnly -Visibility Public -Value $(pwd)
 
 # These lines deal with either script ending
 echo --% > /dev/null ; : ' | out-null
