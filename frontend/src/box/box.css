@@ -1,0 +1,19 @@
+.box {
+    position: absolute;
+    min-width: 50px;
+    min-height: 20px;
+    border: 4px solid rgb(55, 235, 19);
+    margin: 10px;
+}
+
+.box-title-bar {
+    border: 2px solid red;
+}
+
+.formula-input {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: black;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+}
