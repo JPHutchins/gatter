@@ -1,2 +1,5 @@
 # envr
 envr-local
+
+# pytest
+.pytest_cache
