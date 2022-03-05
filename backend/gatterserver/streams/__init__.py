@@ -78,6 +78,7 @@ class StreamManager:
                         self._semaphore.release()
                     except Exception as e:
                         LOGGER.critical(e, exc_info=True)
+
             return _send
 
         return _send_wrapper(stream_id)

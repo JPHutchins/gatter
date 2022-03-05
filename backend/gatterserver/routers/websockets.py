@@ -4,6 +4,7 @@ import logging
 import sys
 
 from fastapi import APIRouter, WebSocket
+
 from gatterserver.streams import StreamManager
 
 LOGGER = logging.getLogger(__name__)
