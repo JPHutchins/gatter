@@ -3,6 +3,7 @@
 import asyncio
 
 import pytest
+
 from gatterserver.streams import StreamId, StreamManager, StreamPacket
 
 

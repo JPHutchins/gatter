@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from gatterserver.routers import tests, websockets
 from gatterserver.streams import StreamManager
 
