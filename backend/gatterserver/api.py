@@ -2,12 +2,17 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from gatterserver.routers import tests, websockets
+from gatterserver.streams import StreamManager
 
-from gatterserver.routers import tests
+stream_manager = StreamManager()
+
+websockets.register(stream_manager)
 
 app = FastAPI()
 
 app.include_router(tests.router)
+app.include_router(websockets.router)
 
 app.add_middleware(
     CORSMiddleware,
