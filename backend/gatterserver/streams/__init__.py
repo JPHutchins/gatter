@@ -75,11 +75,9 @@ class StreamManager:
                 async with self._lock:
                     try:
                         self._pending_data.append(StreamPacket(stream_id, data))
+                        self._semaphore.release()
                     except Exception as e:
                         LOGGER.critical(e, exc_info=True)
-                    finally:
-                        self._semaphore.release()
-
             return _send
 
         return _send_wrapper(stream_id)
