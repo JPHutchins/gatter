@@ -35,15 +35,14 @@ const Box = () => {
             onStop={handleStop}
             enableUserSelectHack={false}
             cancel=".no-drag"
+            className="box"
         >
-            <div>
-                <div className="box">
-                    <div className="box-contents no-drag">
-                        <div>{`${args}`}</div>
-                        <Title />
-                        <Formula formula={formula} setFormula={setFormula} args={args} setOutput={setOutput} />
-                        <div>{`${output}`}</div>
-                    </div>
+            <div className="box">
+                <div className="box-contents no-drag">
+                    <div>{`${args}`}</div>
+                    <Title />
+                    <Formula formula={formula} setFormula={setFormula} args={args} setOutput={setOutput} />
+                    <div>{`${output}`}</div>
                 </div>
             </div>
         </Draggable>
