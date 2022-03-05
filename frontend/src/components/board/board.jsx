@@ -1,4 +1,3 @@
-import './board.css';
 import { Box } from 'components';
 
 const Board = () => {
