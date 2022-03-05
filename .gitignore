@@ -3,3 +3,6 @@ envr-local
 
 # pytest
 .pytest_cache
+
+# vscode
+.vscode

@@ -1,15 +1,15 @@
 import './box.css';
-
-import { useState } from 'react';
 import Draggable from 'react-draggable';
+import { useState } from 'react';
+import { Formula } from 'components';
 
+const TEST_ARGS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const Box = () => {
     const [activeDrags, setActiveDrags] = useState(0);
     const [deltaPosition, setDeltaPosition] = useState({ x: 0, y: 0 });
     const [formula, setFormula] = useState("");
     const [output, setOutput] = useState(NaN);
-
-    const args = [1, 2];
+    const [args, setArgs] = useState(TEST_ARGS);
 
     const handleDrag = (e, ui) => {
         const { x, y } = deltaPosition;
@@ -22,18 +22,6 @@ const Box = () => {
 
     const handleStop = () => {
         setActiveDrags(activeDrags - 1);
-    }
-
-    const handleFormulaChange = (e) => {
-        setFormula(e.target.value);
-    }
-
-    const handleClick = () => {
-        const func = `return ${formula}`;
-        const result = new Function(func);
-        console.warn(result);
-        console.warn(result());
-        setOutput(result()(args));
     }
 
     return (
@@ -50,10 +38,9 @@ const Box = () => {
                 <div className="box-title-bar handle">
                     Title of the function goes here
                 </div>
+                <Formula formula={formula} setFormula={setFormula} args={args} setOutput={setOutput} />
                 <div className="box-contents">
                     <div>{`${args}`}</div>
-                    <textarea id="formula" className="formula-input" spellcheck="false" onChange={handleFormulaChange}/>
-                    <button id="go" onClick={handleClick}>Calculate</button>
                     <div>{`${output}`}</div>
                 </div>
             </div>

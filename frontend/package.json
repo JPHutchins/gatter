@@ -10,21 +10,23 @@
     "@testing-library/user-event": "^13.5.0",
     "concurrently": "^7.0.0",
     "cross-fetch": "^3.1.5",
+    "customize-cra": "^1.0.0",
     "electron": "^17.1.0",
     "electron-builder": "^22.14.13",
     "electron-is-dev": "^2.0.0",
     "node-fetch": "^3.2.0",
     "react": "^17.0.2",
+    "react-app-rewired": "^2.2.1",
     "react-dom": "^17.0.2",
     "react-draggable": "^4.4.4",
-    "react-scripts": "5.0.0",
+    "react-scripts": "^5.0.0",
     "wait-on": "^6.0.1",
     "web-vitals": "^2.1.2"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "ebuild": "npm run build && node_modules/.bin/build",
     "dev": "concurrently --kill-others \"npm start\" \"wait-on http://localhost:3000 && electron .\""
@@ -46,5 +48,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "react-app-rewire-alias": "^1.1.7"
   }
 }

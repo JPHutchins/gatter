@@ -1,8 +1,5 @@
 import './board.css';
-
-import Box from '../box/box.jsx'
-
-
+import { Box } from 'components';
 
 const Board = () => {
     return (
