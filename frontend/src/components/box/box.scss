@@ -1,9 +1,19 @@
 .box {
     position: absolute;
-    min-width: 50px;
-    min-height: 20px;
+    min-width: 8rem;
+    min-height: 4rem;
     border: 4px solid rgb(55, 235, 19);
-    margin: 10px;
+}
+.handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.box-contents {
+    margin: 2rem;
 }
 
 .box-title-bar {
