@@ -26,18 +26,10 @@ const Box = ({ deleteBox, args = TEST_ARGS }) => {
         setActiveDrags(activeDrags - 1);
     }
 
+    const dragHandlers = { onStart: handleStart, onStop: handleStop, onDrag: handleDrag };
+
     return (
-        <Draggable
-            defaultPosition={{ x: 0, y: 0 }}
-            position={null}
-            grid={[1, 1]}
-            scale={1}
-            onStart={handleStart}
-            onDrag={handleDrag}
-            onStop={handleStop}
-            cancel=".no-drag"
-            nodeRef={nodeRef}
-        >
+        <Draggable cancel=".no-drag" nodeRef={nodeRef} {...dragHandlers}>
             <div className={`box ${collapsed ? 'collapsed' : ''}`} ref={nodeRef}>
                 <div className="box-contents no-drag">
                     <Title collapsed={collapsed} setCollapsed={setCollapsed} />
