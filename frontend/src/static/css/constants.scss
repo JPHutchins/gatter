@@ -1,0 +1,41 @@
+/*********
+* COLORS
+*********/
+$white:                         #FFFFFF;
+$black:                         #292929;
+$light-gray:                    #EEEEEE;
+$dark-gray:                     #777777;
+
+/*********
+* VALUES
+*********/
+$light-font-weight:             300;
+$standard-font-weight:          400;
+$bold-font-weight:              700;
+
+/*********
+* SHADOWS
+*********/
+$box-shadow:                   0 3px 3px 0px #C1B9B4;
+;
+
+@mixin box-shadow-hard($distance: 3px, $color: #00000029) {
+    box-shadow: $distance $distance 0 0 $color;
+}
+
+/*********
+* MIXINS
+*********/
+$z-indicies: (
+    "box",
+    // First element has highest z-index, last has lowest
+);
+
+@function z($name) {
+    @if index($z-indicies, $name) {
+        @return (length($z-indicies) - index($z-indicies, $name)) + 1;
+    } @else {
+        @warn 'There is no item "#{$name}" in this list; choose one of: #{$z-indicies}';
+        @return 999;
+    }
+}
