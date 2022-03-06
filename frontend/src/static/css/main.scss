@@ -1,1 +1,15 @@
+@import 'constants.scss';
+
+.react-draggable {
+    cursor: move;
+}
+
+.react-draggable.react-draggable-dragging {
+    box-shadow: $box-shadow;
+}
+
+.no-drag {
+    cursor: default;
+}
+
 @import 'imports.scss';

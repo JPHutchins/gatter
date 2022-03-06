@@ -1,28 +1,26 @@
 import { useState } from 'react';
 
-const Title = () => {
+const Title = ({ collapsed, setCollapsed }) => {
     const [editing, setEditing] = useState(false);
-    const [title, setTitle] = useState('');
+    const [title, setTitle] = useState('Title');
 
     return (
         <div className="formula-title">
-            {editing ? (
-                <input
-                    type="text"
-                    aria-label="title"
-                    placeholder="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            setEditing(false);
-                        }
-                    }}
-                />
-            ) : (
-                <h2>{title}</h2>
-            )}
+            <input
+                type="text"
+                aria-label="title"
+                placeholder="Title"
+                value={title}
+                disabled={!editing}
+                onChange={(e) => setTitle(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        setEditing(false);
+                    }
+                }}
+            />
             <button onClick={() => setEditing(!editing)}>{editing ? 'Save' : 'Edit'}</button>
+            <button onClick={() => setCollapsed(!collapsed)}>{collapsed ? '+' : '-'}</button>
         </div>
     );
 }

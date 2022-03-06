@@ -1,4 +1,16 @@
-const Formula = ({ formula, setFormula, args, setOutput }) => {
+import { useState, useEffect } from 'react';
+
+const Formula = ({ args, setOutput }) => {
+    const [formula, setFormula] = useState('(x) => x');
+
+    useEffect(() => {
+        if (!args) return null;
+        const func = `return ${formula}`;
+        // eslint-disable-next-line no-new-func
+        const result = new Function(func);
+        setOutput(result()(args));
+    }, []);
+        
     const handleChange = (e) => {
         setFormula(e.target.value);
     }
@@ -12,9 +24,9 @@ const Formula = ({ formula, setFormula, args, setOutput }) => {
     }
 
     return (
-        <div>
-            <textarea id="formula" className="formula-input" spellcheck="false" onChange={handleChange} placeholder="(x) => x"/>
-            <button id="go" onClick={handleClick}>Calculate</button>
+        <div className="formula">
+            <textarea className="formula-input" spellCheck="false" onChange={handleChange} placeholder="(x) => x"/>
+            <button onClick={handleClick}>Calculate</button>
         </div>
     );
 }

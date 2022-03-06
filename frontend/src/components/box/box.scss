@@ -1,29 +1,32 @@
 .box {
     position: absolute;
-    min-width: 8rem;
-    min-height: 4rem;
-    border: 4px solid rgb(55, 235, 19);
-}
-.handle {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-}
+    background-color: $light-gray;
+    border-radius: 10px;
+    border: 1px solid $dark-gray;
 
-.box-contents {
-    margin: 2rem;
-}
-
-.box-title-bar {
-    border: 2px solid red;
-}
-
-.formula-input {
-    font-family: 'Courier New', Courier, monospace;
-    background-color: black;
-    color: white;
-    font-weight: 700;
-    font-size: 1rem;
+    &.collapsed {
+        .input-output-wrapper {
+            height: 0;
+            overflow: hidden;
+        }
+    }
+    .box-contents {
+        margin: 2rem;
+    }
+    
+    .input-output {
+        margin: 0.5rem 0;
+        h3 {
+            padding: 0.5rem;
+            font-size: 1rem;
+            margin: 0;
+        }
+        p {
+            padding: 0.25rem 0.5rem;
+            background-color: white;
+            border: 1px solid $light-gray;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+        }
+    }
 }
