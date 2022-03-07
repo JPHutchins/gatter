@@ -33,7 +33,7 @@ class Ramp(SignalGenerator):
         self._min: Union[float, int] = None
         self._val: Union[float, int] = None
 
-        self.configure(0, 10, 1, 0.001)
+        self.configure(0, 10, 1, 0.1)
 
         self._streams = [Stream(start=self.start_stream)]
 

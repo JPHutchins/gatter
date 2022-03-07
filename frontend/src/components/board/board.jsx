@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box } from 'components';
+import { Box, Device } from 'components';
 
 const Board = () => {
     const [boxes, setBoxes] = useState([]);
@@ -18,6 +18,7 @@ const Board = () => {
             {boxes.map((box) => (
                 <Box key={box.id} deleteBox={() => deleteBox(box.id)} />
             ))}
+            <Device />
         </div>
     );
 }
