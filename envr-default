@@ -8,3 +8,12 @@
 [VARIABLES]
     # Change this from python3 -> python for Windows environment
     PYTHON_ALIAS=python3
+
+    # Definitions shared beetween frontend and backend
+    API_WS_STREAM_PATH=/api/ws/streams
+    API_CMD_ADD_PATH=/api/cmd/add
+    API_CMD_DEL_PATH=/api/cmd/del
+    API_CMD_START_STREAM_PATH=/api/cmd/stream/start
+    RAMP_EMITTER_TYPE=ramp
+    BLE_EMITTER_TYPE=ble
+    SERIAL_EMITTER_TYPE=serial
