@@ -2,18 +2,19 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from gatterserver.emitters.emittermanager import EmitterManager
+from gatterserver.routers import jsonposts, tests, websockets
 
-from gatterserver.routers import tests, websockets
-from gatterserver.streams import StreamManager
+emitter_manger = EmitterManager()
 
-stream_manager = StreamManager()
-
-websockets.register(stream_manager)
+websockets.register(emitter_manger)
+jsonposts.register(emitter_manger)
 
 app = FastAPI()
 
 app.include_router(tests.router)
 app.include_router(websockets.router)
+app.include_router(jsonposts.router)
 
 app.add_middleware(
     CORSMiddleware,
