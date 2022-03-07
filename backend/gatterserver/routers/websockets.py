@@ -4,22 +4,21 @@ import logging
 import sys
 
 from fastapi import APIRouter, WebSocket
-
-from gatterserver.streams import StreamManager
+from gatterserver.emitters.emittermanager import EmitterManager
 
 LOGGER = logging.getLogger(__name__)
 
 router = APIRouter()
 
-stream_manager: StreamManager = None
+emitter_manager: EmitterManager = None
 
 
-def register(stream_manager: StreamManager):
-    sys.modules[__name__].__dict__["stream_manager"] = stream_manager
+def register(emitter_manager: EmitterManager):
+    sys.modules[__name__].__dict__["emitter_manager"] = emitter_manager
 
 
 @router.websocket("/api/ws/streams")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    async for packet in stream_manager.receive():
+    async for packet in emitter_manager.stream_manager.receive():
         await websocket.send_bytes(packet.byte_array)
