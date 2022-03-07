@@ -4,7 +4,7 @@ import asyncio
 import logging
 import struct
 from collections import deque
-from typing import Awaitable
+from typing import Awaitable, Callable
 
 from pydantic import BaseModel, validator
 
@@ -13,44 +13,53 @@ LOGGER = logging.getLogger(__name__)
 MAXIMUM_PENDING_PACKETS = 10
 
 
+class Stream(BaseModel):
+    start: Callable[[Awaitable], asyncio.Task]
+    task_handle: asyncio.Task = None
+    send: Awaitable = None
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
 class StreamId(BaseModel):
     device_id: int
-    stream_id: int
+    channel_id: int
 
-    @validator("device_id", "stream_id")
+    @validator("device_id", "channel_id")
     def must_be_uint8_t(cls, v):
         if v < 0 or v > 0xFF:
             raise ValueError("IDs must be uint8_t, 0-255")
         return v
 
     def __hash__(self):
-        return (self.__dict__["device_id"] << 8) | self.__dict__["stream_id"]
+        return (self.__dict__["device_id"] << 8) | self.__dict__["channel_id"]
 
 
 class StreamPacket:
     """A packet of bytes associated with a particular stream."""
 
-    def __init__(self, stream: StreamId, raw_data: bytes):
-        self._stream = stream
+    def __init__(self, stream_id: StreamId, raw_data: bytes):
+        self._stream_id = stream_id
         self._raw_data = raw_data
         self._raw_data_length = len(raw_data)
 
         self._byte_array = (
             struct.pack(
-                "BBH", stream.device_id, stream.stream_id, self._raw_data_length
+                "BBH", stream_id.device_id, stream_id.channel_id, self._raw_data_length
             )
             + self._raw_data
         )
 
     @property
     def byte_array(self) -> bytes:
-        """The bytes | device_id u8 | stream_id u8 | length u16 | data[0] u8 | data[length-1] u8 |"""
+        """The bytes | device_id u8 | channel_id u8 | length u16 | data[0] u8 | data[length-1] u8 |"""
         return self._byte_array
 
     @property
-    def stream(self) -> StreamId:
+    def stream_id(self) -> StreamId:
         """The stream ID."""
-        return self._stream
+        return self._stream_id
 
 
 class StreamManager:
@@ -62,11 +71,12 @@ class StreamManager:
         self._semaphore = asyncio.Semaphore(0)
         self._streams = {}
 
-    def add_stream(self, stream_id: StreamId) -> Awaitable:
+    async def add_stream(self, stream_id: StreamId) -> Awaitable:
         """Register a stream and return an awaitable used to queue packets."""
-        if stream_id in self._streams:
-            raise Exception(f"{stream_id} already added!")
-        self._streams[stream_id] = stream_id
+        async with self._lock:
+            if stream_id in self._streams:
+                raise Exception(f"{stream_id} already added!")
+            self._streams[stream_id] = stream_id
 
         LOGGER.info(f"{stream_id} added.")
 
@@ -83,12 +93,15 @@ class StreamManager:
 
         return _send_wrapper(stream_id)
 
-    def remove_stream(self, stream_id: StreamId):
+    async def remove_stream(self, stream_id: StreamId):
         """Remove a stream."""
-        if stream_id not in self._streams:
-            LOGGER.warning(f"{stream_id} cannot be removed because it does not exist.")
-            return
-        del self._streams[stream_id]
+        async with self._lock:
+            if stream_id not in self._streams:
+                LOGGER.warning(
+                    f"{stream_id} cannot be removed because it does not exist."
+                )
+                return
+            del self._streams[stream_id]
 
     async def receive(self) -> StreamPacket:
         while True:
