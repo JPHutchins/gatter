@@ -16,7 +16,7 @@ const Board = () => {
         <div id="board">
             <button onClick={addBox}>Add Box</button>
             {boxes.map((box) => (
-                <Box key={box.id} deleteBox={() => deleteBox(box.id)} />
+                <Box key={box.id} deleteBox={() => deleteBox(box.id)} boxId={box.id} />
             ))}
         </div>
     );
