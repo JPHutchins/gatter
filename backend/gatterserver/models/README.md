@@ -95,3 +95,69 @@
 }
 ```
 
+## A BLE device has been discovered
+
+`/api/ws/blediscovery`
+
+```json
+{
+  "title": "BLEDiscoveryMessage",
+  "type": "object",
+  "properties": {
+    "address": {
+      "title": "Address",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "rssi": {
+      "title": "Rssi",
+      "type": "string"
+    },
+    "services": {
+      "title": "Services",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "manufacturerData": {
+      "title": "Manufacturerdata",
+      "type": "string",
+      "format": "binary"
+    }
+  },
+  "required": [
+    "address",
+    "name",
+    "rssi",
+    "services",
+    "manufacturerData"
+  ],
+  "additionalProperties": false
+}
+```
+
+## Start or stop BLE discovery
+
+`/api/ble/discovery`
+
+```json
+{
+  "title": "DiscoveryCommand",
+  "type": "object",
+  "properties": {
+    "discovery": {
+      "title": "Discovery",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "discovery"
+  ],
+  "additionalProperties": false
+}
+```
+
