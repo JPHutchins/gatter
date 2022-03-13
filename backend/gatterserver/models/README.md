@@ -1,13 +1,15 @@
 # Models
 
-## Add a device or stream
+## AddCommand
 
 `/api/cmd/add`
+
+Add a device or stream.
 
 ```json
 {
   "title": "AddCommand",
-  "description": "The default config for Gatter Pyadantic models.",
+  "description": "Add a device or stream.",
   "type": "object",
   "properties": {
     "emitterType": {
@@ -29,14 +31,16 @@
 }
 ```
 
-## Remove a device or stream
+## DeleteCommand
 
 `/api/cmd/del`
+
+Remove a device or stream.
 
 ```json
 {
   "title": "DeleteCommand",
-  "description": "The default config for Gatter Pyadantic models.",
+  "description": "Remove a device or stream.",
   "type": "object",
   "properties": {
     "deviceId": {
@@ -53,14 +57,16 @@
 }
 ```
 
-## Start a stream
+## StartStreamCommand
 
 `/api/cmd/stream/start`
+
+Start a stream.
 
 ```json
 {
   "title": "StartStreamCommand",
-  "description": "The default config for Gatter Pyadantic models.",
+  "description": "Start a stream.",
   "type": "object",
   "properties": {
     "streamId": {
@@ -94,14 +100,16 @@
 }
 ```
 
-## A BLE device has been discovered
+## BLEDiscoveryMessage
 
 `/api/ws/blediscovery`
+
+Message sent when a BLE device is discovered.
 
 ```json
 {
   "title": "BLEDiscoveryMessage",
-  "description": "The default config for Gatter Pyadantic models.",
+  "description": "Message sent when a BLE device is discovered.",
   "type": "object",
   "properties": {
     "address": {
@@ -141,14 +149,16 @@
 }
 ```
 
-## Start or stop BLE discovery
+## DiscoveryCommand
 
 `/api/ble/discovery`
+
+Turn BLE discovery on or off.
 
 ```json
 {
   "title": "DiscoveryCommand",
-  "description": "The default config for Gatter Pyadantic models.",
+  "description": "Turn BLE discovery on or off.",
   "type": "object",
   "properties": {
     "discovery": {
