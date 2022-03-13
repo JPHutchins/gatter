@@ -1,5 +1,4 @@
 from fastapi.testclient import TestClient
-
 from gatterserver.api import app
 
 client = TestClient(app)

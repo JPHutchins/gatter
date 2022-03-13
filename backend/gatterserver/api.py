@@ -2,16 +2,20 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from gatterserver.ble.discovery import BLEDiscoveryManager
 from gatterserver.emitters.emittermanager import EmitterManager
-from gatterserver.routers import jsonposts, tests, websockets
+from gatterserver.routers import ble, jsonposts, tests, websockets
 
+discovery_manager = BLEDiscoveryManager()
 emitter_manger = EmitterManager()
 
+ble.register(discovery_manager)
 websockets.register(emitter_manger)
 jsonposts.register(emitter_manger)
 
 app = FastAPI()
 
+app.include_router(ble.router)
 app.include_router(tests.router)
 app.include_router(websockets.router)
 app.include_router(jsonposts.router)
