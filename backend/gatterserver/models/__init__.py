@@ -32,6 +32,7 @@ class StartStreamCommand(BaseModel, extra=Extra.forbid):
 class BLEDiscoveryMessage(BaseModel, extra=Extra.forbid):
     address: str
     rssi: int
+    rssiAverage: float
     name: str = None
     services: List[str] = []
     manufacturerData: Dict[int, bytes] = {}

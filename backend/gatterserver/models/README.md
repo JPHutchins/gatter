@@ -108,16 +108,21 @@
       "title": "Address",
       "type": "string"
     },
+    "rssi": {
+      "title": "Rssi",
+      "type": "integer"
+    },
+    "rssiAverage": {
+      "title": "Rssiaverage",
+      "type": "number"
+    },
     "name": {
       "title": "Name",
       "type": "string"
     },
-    "rssi": {
-      "title": "Rssi",
-      "type": "string"
-    },
     "services": {
       "title": "Services",
+      "default": [],
       "type": "array",
       "items": {
         "type": "string"
@@ -125,16 +130,18 @@
     },
     "manufacturerData": {
       "title": "Manufacturerdata",
-      "type": "string",
-      "format": "binary"
+      "default": {},
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "format": "binary"
+      }
     }
   },
   "required": [
     "address",
-    "name",
     "rssi",
-    "services",
-    "manufacturerData"
+    "rssiAverage"
   ],
   "additionalProperties": false
 }

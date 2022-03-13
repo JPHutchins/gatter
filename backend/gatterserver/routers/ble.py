@@ -27,6 +27,7 @@ async def websocket_endpoint(websocket: WebSocket):
             address=device.address,
             name=device.name,
             rssi=device.rssi,
+            rssiAverage=discovery_manager.get_average_rssi(device.address),
             services=device.metadata["uuids"],
             manufacturerData=device.metadata["manufacturer_data"],
         )
