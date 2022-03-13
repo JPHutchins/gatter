@@ -15,21 +15,33 @@ BLE_EMITTER_TYPE = os.environ["BLE_EMITTER_TYPE"]
 SERIAL_EMITTER_TYPE = os.environ["SERIAL_EMITTER_TYPE"]
 
 
-class AddCommand(BaseModel, extra=Extra.forbid):
+class GatterBaseModel(BaseModel):
+    """The default base class for Gatter Pyadantic models."""
+    class Config:
+        """The default config for Gatter Pyadantic models."""
+        extra = Extra.forbid
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any], model: BaseModel) -> None:
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+
+
+class AddCommand(GatterBaseModel):
     emitterType: Literal[RAMP_EMITTER_TYPE, BLE_EMITTER_TYPE, SERIAL_EMITTER_TYPE]
     deviceId: int = None
 
 
-class DeleteCommand(BaseModel, extra=Extra.forbid):
+class DeleteCommand(GatterBaseModel):
     deviceId: int
     channelId: int = None
 
 
-class StartStreamCommand(BaseModel, extra=Extra.forbid):
+class StartStreamCommand(GatterBaseModel):
     streamId: StreamId
 
 
-class BLEDiscoveryMessage(BaseModel, extra=Extra.forbid):
+class BLEDiscoveryMessage(GatterBaseModel):
     address: str
     rssi: int
     rssiAverage: float
@@ -46,7 +58,7 @@ class BLEDiscoveryMessage(BaseModel, extra=Extra.forbid):
         return v
 
 
-class DiscoveryCommand(BaseModel, extra=Extra.forbid):
+class DiscoveryCommand(GatterBaseModel):
     discovery: bool
 
 

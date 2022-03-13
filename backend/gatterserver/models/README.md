@@ -7,10 +7,10 @@
 ```json
 {
   "title": "AddCommand",
+  "description": "The default config for Gatter Pyadantic models.",
   "type": "object",
   "properties": {
     "emitterType": {
-      "title": "Emittertype",
       "enum": [
         "ramp",
         "ble",
@@ -19,7 +19,6 @@
       "type": "string"
     },
     "deviceId": {
-      "title": "Deviceid",
       "type": "integer"
     }
   },
@@ -37,14 +36,13 @@
 ```json
 {
   "title": "DeleteCommand",
+  "description": "The default config for Gatter Pyadantic models.",
   "type": "object",
   "properties": {
     "deviceId": {
-      "title": "Deviceid",
       "type": "integer"
     },
     "channelId": {
-      "title": "Channelid",
       "type": "integer"
     }
   },
@@ -62,6 +60,7 @@
 ```json
 {
   "title": "StartStreamCommand",
+  "description": "The default config for Gatter Pyadantic models.",
   "type": "object",
   "properties": {
     "streamId": {
@@ -102,26 +101,22 @@
 ```json
 {
   "title": "BLEDiscoveryMessage",
+  "description": "The default config for Gatter Pyadantic models.",
   "type": "object",
   "properties": {
     "address": {
-      "title": "Address",
       "type": "string"
     },
     "rssi": {
-      "title": "Rssi",
       "type": "integer"
     },
     "rssiAverage": {
-      "title": "Rssiaverage",
       "type": "number"
     },
     "name": {
-      "title": "Name",
       "type": "string"
     },
     "services": {
-      "title": "Services",
       "default": [],
       "type": "array",
       "items": {
@@ -129,7 +124,6 @@
       }
     },
     "manufacturerData": {
-      "title": "Manufacturerdata",
       "default": {},
       "type": "object",
       "additionalProperties": {
@@ -154,10 +148,10 @@
 ```json
 {
   "title": "DiscoveryCommand",
+  "description": "The default config for Gatter Pyadantic models.",
   "type": "object",
   "properties": {
     "discovery": {
-      "title": "Discovery",
       "type": "boolean"
     }
   },
