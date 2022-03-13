@@ -4,6 +4,7 @@ import logging
 import sys
 
 from fastapi import APIRouter, Response, status
+
 from gatterserver import models
 from gatterserver.emitters.emittermanager import EmitterManager, EmitterManagerError
 from gatterserver.emitters.signalgen import Ramp

@@ -3,8 +3,9 @@
 import asyncio
 
 import pytest
-from gatterserver.streams import Stream, StreamId, StreamManager, StreamPacket
 from pydantic import ValidationError
+
+from gatterserver.streams import Stream, StreamId, StreamManager, StreamPacket
 
 
 def test_stream_type():

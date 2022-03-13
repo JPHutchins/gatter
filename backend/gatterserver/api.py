@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from gatterserver.ble.discovery import BLEDiscoveryManager
 from gatterserver.emitters.emittermanager import EmitterManager
 from gatterserver.routers import ble, jsonposts, tests, websockets

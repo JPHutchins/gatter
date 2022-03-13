@@ -3,6 +3,7 @@
 import asyncio
 
 import pytest
+
 from gatterserver.emitters.emitter import Emitter
 from gatterserver.emitters.emittermanager import EmitterManager
 from gatterserver.emitters.signalgen import Ramp

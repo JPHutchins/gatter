@@ -3,6 +3,7 @@
 import asyncio
 
 import pytest
+
 from gatterserver.emitters.signalgen import Ramp
 from gatterserver.streams import StreamId, StreamManager, StreamPacket
 
