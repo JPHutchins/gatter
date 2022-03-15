@@ -6,11 +6,11 @@ import struct
 from collections import deque
 from typing import Awaitable, Callable
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
+
+from gatterserver import models
 
 LOGGER = logging.getLogger(__name__)
-
-MAXIMUM_PENDING_PACKETS = 10
 
 
 class Stream(BaseModel):
@@ -22,31 +22,17 @@ class Stream(BaseModel):
         arbitrary_types_allowed = True
 
 
-class StreamId(BaseModel):
-    device_id: int
-    channel_id: int
-
-    @validator("device_id", "channel_id")
-    def must_be_uint8_t(cls, v):
-        if v < 0 or v > 0xFF:
-            raise ValueError("IDs must be uint8_t, 0-255")
-        return v
-
-    def __hash__(self):
-        return (self.__dict__["device_id"] << 8) | self.__dict__["channel_id"]
-
-
 class StreamPacket:
     """A packet of bytes associated with a particular stream."""
 
-    def __init__(self, stream_id: StreamId, raw_data: bytes):
+    def __init__(self, stream_id: models.StreamId, raw_data: bytes):
         self._stream_id = stream_id
         self._raw_data = raw_data
         self._raw_data_length = len(raw_data)
 
         self._byte_array = (
             struct.pack(
-                "BBH", stream_id.device_id, stream_id.channel_id, self._raw_data_length
+                "BBH", stream_id.deviceId, stream_id.channelId, self._raw_data_length
             )
             + self._raw_data
         )
@@ -57,7 +43,7 @@ class StreamPacket:
         return self._byte_array
 
     @property
-    def stream_id(self) -> StreamId:
+    def stream_id(self) -> models.StreamId:
         """The stream ID."""
         return self._stream_id
 
@@ -71,7 +57,7 @@ class StreamManager:
         self._semaphore = asyncio.Semaphore(0)
         self._streams = {}
 
-    async def add_stream(self, stream_id: StreamId) -> Awaitable:
+    async def add_stream(self, stream_id: models.StreamId) -> Awaitable:
         """Register a stream and return an awaitable used to queue packets."""
         async with self._lock:
             if stream_id in self._streams:
@@ -80,7 +66,7 @@ class StreamManager:
 
         LOGGER.info(f"{stream_id} added.")
 
-        def _send_wrapper(stream_id: StreamId) -> Awaitable:
+        def _send_wrapper(stream_id: models.StreamId) -> Awaitable:
             async def _send(data: bytes):
                 async with self._lock:
                     try:
@@ -93,7 +79,7 @@ class StreamManager:
 
         return _send_wrapper(stream_id)
 
-    async def remove_stream(self, stream_id: StreamId):
+    async def remove_stream(self, stream_id: models.StreamId):
         """Remove a stream."""
         async with self._lock:
             if stream_id not in self._streams:

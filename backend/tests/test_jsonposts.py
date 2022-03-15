@@ -45,10 +45,10 @@ async def test_start_stream():
     response = client.post(models.API_CMD_DEL_PATH, data=json.dumps(command))
     assert response.status_code == 200
 
-    command = {"streamId": {"device_id": 0, "channel_id": 0}}
+    command = {"streamId": {"deviceId": 0, "channelId": 0}}
     response = client.post(models.API_CMD_START_STREAM_PATH, data=json.dumps(command))
     assert response.status_code == 400
-    assert response.json() == {"error": "Could not get device_id=0 channel_id=0"}
+    assert response.json() == {"error": "Could not get deviceId=0 channelId=0"}
 
     command = {"emitterType": models.RAMP_EMITTER_TYPE}
     response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
@@ -67,7 +67,7 @@ async def test_start_stream():
 
     t = asyncio.create_task(frontend_websocket_endpoint_task())
 
-    command = {"streamId": {"device_id": 0, "channel_id": 0}}
+    command = {"streamId": {"deviceId": 0, "channelId": 0}}
 
     response = client.post(models.API_CMD_START_STREAM_PATH, data=json.dumps(command))
     assert response.status_code == 200

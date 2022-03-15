@@ -4,10 +4,11 @@ import asyncio
 
 import pytest
 
+from gatterserver import models
 from gatterserver.emitters.emitter import Emitter
 from gatterserver.emitters.emittermanager import EmitterManager
 from gatterserver.emitters.signalgen import Ramp
-from gatterserver.streams import StreamId, StreamPacket
+from gatterserver.streams import StreamPacket
 
 
 def test_emitter_base_class():
@@ -80,7 +81,7 @@ async def test_emitter_manager_starts_stops_stream():
     assert r._min == 0
 
     # Start a stream via the EmitterManager
-    r_stream_id = StreamId(device_id=0, channel_id=0)
+    r_stream_id = models.StreamId(deviceId=0, channelId=0)
     sm = em.stream_manager
 
     await em.start_stream(r_stream_id)

@@ -80,21 +80,21 @@ Start a stream.
   "definitions": {
     "StreamId": {
       "title": "StreamId",
+      "description": "The unique 16-bit ID `| uint8 deviceId | uint8 channelId |`.",
       "type": "object",
       "properties": {
-        "device_id": {
-          "title": "Device Id",
+        "deviceId": {
           "type": "integer"
         },
-        "channel_id": {
-          "title": "Channel Id",
+        "channelId": {
           "type": "integer"
         }
       },
       "required": [
-        "device_id",
-        "channel_id"
-      ]
+        "deviceId",
+        "channelId"
+      ],
+      "additionalProperties": false
     }
   }
 }
@@ -167,6 +167,33 @@ Turn BLE discovery on or off.
   },
   "required": [
     "discovery"
+  ],
+  "additionalProperties": false
+}
+```
+
+## StreamId
+
+`object`
+
+The unique 16-bit ID `| uint8 deviceId | uint8 channelId |`.
+
+```json
+{
+  "title": "StreamId",
+  "description": "The unique 16-bit ID `| uint8 deviceId | uint8 channelId |`.",
+  "type": "object",
+  "properties": {
+    "deviceId": {
+      "type": "integer"
+    },
+    "channelId": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "deviceId",
+    "channelId"
   ],
   "additionalProperties": false
 }

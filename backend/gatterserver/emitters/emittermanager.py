@@ -5,8 +5,9 @@ import logging
 from collections import defaultdict
 from typing import Dict, List
 
+from gatterserver import models
 from gatterserver.emitters.emitter import Emitter
-from gatterserver.streams import Stream, StreamId, StreamManager
+from gatterserver.streams import Stream, StreamManager
 
 from . import const
 
@@ -39,7 +40,7 @@ class EmitterManager:
             self._emitters[device_id] = emitter(device_id)
             return device_id
 
-    async def start_stream(self, stream_id: StreamId):
+    async def start_stream(self, stream_id: models.StreamId):
         """Start the given stream."""
         async with self._lock:
             stream = self._get_stream(stream_id)
@@ -55,7 +56,7 @@ class EmitterManager:
             stream.task_handle = stream.start(stream.send)
             LOGGER.debug(f"{stream_id} started.")
 
-    async def stop_stream(self, stream_id: StreamId):
+    async def stop_stream(self, stream_id: models.StreamId):
         """Stop the given stream."""
         async with self._lock:
             stream = self._get_stream(stream_id)
@@ -76,7 +77,7 @@ class EmitterManager:
     async def stop_all_streams(self, device_id: int):
         """Stop all streams of `device_id`."""
         for channel_id, _ in enumerate(self._emitters[device_id].streams):
-            stream_id = StreamId(device_id=device_id, channel_id=channel_id)
+            stream_id = models.StreamId(deviceId=device_id, channelId=channel_id)
             await self.stop_stream(stream_id)
 
     async def unregister(self, device_id: int):
@@ -91,7 +92,7 @@ class EmitterManager:
 
         async with self._lock:
             for channel_id in range(len(self._emitters[device_id].streams)):
-                stream_id = StreamId(device_id=device_id, channel_id=channel_id)
+                stream_id = models.StreamId(deviceId=device_id, channelId=channel_id)
                 await self.stream_manager.remove_stream(stream_id)
 
             del self._emitters[device_id]
@@ -106,10 +107,10 @@ class EmitterManager:
         """Helper method.  Only call inside a `async with self._lock:` block."""
         return self._emitters[device_id].streams
 
-    def _get_stream(self, stream_id: StreamId) -> Stream:
+    def _get_stream(self, stream_id: models.StreamId) -> Stream:
         """Helper method.  Only call inside a `async with self._lock:` block."""
         try:
-            return self._get_streams(stream_id.device_id)[stream_id.channel_id]
+            return self._get_streams(stream_id.deviceId)[stream_id.channelId]
         except Exception as e:
             LOGGER.error(e, exc_info=True)
             raise EmitterManagerError(f"Could not get {stream_id}.")

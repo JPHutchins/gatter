@@ -4,8 +4,9 @@ import asyncio
 
 import pytest
 
+from gatterserver import models
 from gatterserver.emitters.signalgen import Ramp
-from gatterserver.streams import StreamId, StreamManager, StreamPacket
+from gatterserver.streams import StreamManager, StreamPacket
 
 
 def test_ramp_constructor():
@@ -26,7 +27,7 @@ def test_ramp_configure():
 
 @pytest.mark.asyncio
 async def test_ramp_integer_output():
-    s = StreamId(device_id=0, channel_id=0)
+    s = models.StreamId(deviceId=0, channelId=0)
     sm = StreamManager()
     f = await sm.add_stream(s)
 
