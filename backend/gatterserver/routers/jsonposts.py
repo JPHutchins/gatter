@@ -21,12 +21,21 @@ def register(emitter_manager: EmitterManager):
 
 
 @router.post(models.API_CMD_ADD_PATH)
-async def add(add_command: models.AddCommand):
+async def add(add_command: models.AddCommand, response: Response):
     if add_command.emitterType == models.RAMP_EMITTER_TYPE:
-        device_id = await emitter_manager.register_device(Ramp)
-        add_command.deviceId = device_id
-        return add_command
-    return {"msg": "error"}
+        emitter_class = Ramp
+    elif add_command.emitterType == models.BLE_EMITTER_TYPE:
+        emitter_class = Ramp  # TODO: replace with BLE class
+    elif add_command.emitterType == models.SERIAL_EMITTER_TYPE:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {"error": f"emitterType: {add_command.emitterType} not implemented"}
+    else:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {"error": f"emitterType: {add_command.emitterType} not matched"}
+
+    device_id = await emitter_manager.register_device(emitter_class)
+    add_command.deviceId = device_id
+    return add_command
 
 
 @router.post(models.API_CMD_DEL_PATH)

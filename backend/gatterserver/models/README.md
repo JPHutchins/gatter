@@ -4,12 +4,12 @@
 
 `/api/cmd/add`
 
-Add a device or stream.
+Add a device or stream. Address is required to add a BLE device.
 
 ```json
 {
   "title": "AddCommand",
-  "description": "Add a device or stream.",
+  "description": "Add a device or stream. Address is required to add a BLE device.",
   "type": "object",
   "properties": {
     "emitterType": {
@@ -18,6 +18,9 @@ Add a device or stream.
         "ble",
         "serial"
       ],
+      "type": "string"
+    },
+    "address": {
       "type": "string"
     },
     "deviceId": {

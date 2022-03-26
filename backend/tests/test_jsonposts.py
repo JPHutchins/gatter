@@ -16,7 +16,11 @@ def test_add_and_delete():
     command = {"emitterType": models.RAMP_EMITTER_TYPE}
     response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
     assert response.status_code == 200
-    assert response.json() == {"emitterType": models.RAMP_EMITTER_TYPE, "deviceId": 0}
+    assert response.json() == {
+        "address": None,
+        "emitterType": models.RAMP_EMITTER_TYPE,
+        "deviceId": 0,
+    }
     response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
     assert response.status_code == 200
     response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
@@ -25,7 +29,11 @@ def test_add_and_delete():
     assert response.status_code == 200
     response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
     assert response.status_code == 200
-    assert response.json() == {"emitterType": models.RAMP_EMITTER_TYPE, "deviceId": 4}
+    assert response.json() == {
+        "address": None,
+        "emitterType": models.RAMP_EMITTER_TYPE,
+        "deviceId": 4,
+    }
 
     command = {"deviceId": 2}
     response = client.post(models.API_CMD_DEL_PATH, data=json.dumps(command))
@@ -36,7 +44,11 @@ def test_add_and_delete():
     command = {"emitterType": models.RAMP_EMITTER_TYPE}
     response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
     assert response.status_code == 200
-    assert response.json() == {"emitterType": models.RAMP_EMITTER_TYPE, "deviceId": 2}
+    assert response.json() == {
+        "address": None,
+        "emitterType": models.RAMP_EMITTER_TYPE,
+        "deviceId": 2,
+    }
 
 
 @pytest.mark.asyncio
@@ -53,7 +65,11 @@ async def test_start_stream():
     command = {"emitterType": models.RAMP_EMITTER_TYPE}
     response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
     assert response.status_code == 200
-    assert response.json() == {"emitterType": models.RAMP_EMITTER_TYPE, "deviceId": 0}
+    assert response.json() == {
+        "address": None,
+        "emitterType": models.RAMP_EMITTER_TYPE,
+        "deviceId": 0,
+    }
 
     async def frontend_websocket_endpoint_task():
         with client.websocket_connect("/api/ws/streams") as websocket:
@@ -74,3 +90,21 @@ async def test_start_stream():
     assert response.json() == command
 
     t.cancel()
+
+
+@pytest.mark.asyncio
+async def test_add_ble():
+    # Should fail if address is not provided
+    command = {"emitterType": models.BLE_EMITTER_TYPE}
+    response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
+    assert response.status_code == 422
+
+    command = {"emitterType": models.BLE_EMITTER_TYPE, "address": "aa:bb:..."}
+    response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "address": "aa:bb:...",
+        "emitterType": models.BLE_EMITTER_TYPE,
+        "deviceId": 5,
+    }
