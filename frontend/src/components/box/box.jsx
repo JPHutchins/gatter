@@ -4,7 +4,7 @@ import { Formula, Title } from 'components';
 
 const TEST_ARGS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-const Box = ({ deleteBox, args = TEST_ARGS }) => {
+const Box = ({ deleteBox, args = TEST_ARGS, boxId }) => {
     const [activeDrags, setActiveDrags] = useState(0);
     const [deltaPosition, setDeltaPosition] = useState({ x: 0, y: 0 });
     const [output, setOutput] = useState('');
@@ -35,13 +35,11 @@ const Box = ({ deleteBox, args = TEST_ARGS }) => {
                     <Title collapsed={collapsed} setCollapsed={setCollapsed} />
                     <div className="input-output-wrapper">
                         <div className="input-output">
-                            <h3>Input:</h3>
-                            <p>{`${JSON.stringify(args)}`}</p>
+                            <p><strong>Input:</strong> {`${JSON.stringify(args)}`}</p>
                         </div>
-                        <Formula args={args} setOutput={setOutput} />
+                        <Formula args={args} setOutput={setOutput} boxId={boxId} />
                         <div className="input-output">
-                            <h3>Output:</h3>
-                            <p>{`${JSON.stringify(output)}`}</p>
+                            <p><strong>Output:</strong> {`${JSON.stringify(output)}`}</p>
                         </div>
                         <button onClick={deleteBox}>Delete</button>
                     </div>

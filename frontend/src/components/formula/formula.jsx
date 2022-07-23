@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 
-const Formula = ({ args, setOutput }) => {
-    const [formula, setFormula] = useState('(x) => x');
+const Formula = ({ args, setOutput, boxId }) => {
+    const identityFn = '(x) => x;';
+    const [formula, setFormula] = useState(identityFn);
 
     useEffect(() => {
         if (!args) return null;
@@ -17,7 +18,9 @@ const Formula = ({ args, setOutput }) => {
 
     const handleClick = () => {
         if (!args) return null;
-        const func = `return ${formula}`;
+        const formulaInput = document.getElementById(`${boxId}-input`);
+        setFormula(formulaInput.value);
+        const func = `return ${formulaInput.value}`;
         // eslint-disable-next-line no-new-func
         const result = new Function(func);
         setOutput(result()(args));
@@ -25,7 +28,7 @@ const Formula = ({ args, setOutput }) => {
 
     return (
         <div className="formula">
-            <textarea className="formula-input" spellCheck="false" onChange={handleChange} placeholder="(x) => x"/>
+            <code-input lang="javascript" onBlur={handleChange} id={`${boxId}-input`} placeholder={identityFn} value={formula} />
             <button onClick={handleClick}>Calculate</button>
         </div>
     );

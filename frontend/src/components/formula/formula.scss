@@ -2,19 +2,20 @@
     position: relative;
     width: 100%;
     height: 100%;
-    .formula-input {
-        min-width: 8rem;
-        font-family: 'Courier New', Courier, monospace;
-        background-color: $black;
-        color: $white;
-        font-weight: 700;
-        font-size: 1rem;
-        vertical-align: top;
-        width: 100%;
-    }
     button {
         position: absolute;
         bottom: calc(min(5%, 25px));
         right: calc(min(5%, 25px));
+    }
+    code-input {
+        font-size: 0.75rem;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        line-height: 0.75rem;
+        min-width: min-content;
+    }
+    button {
+        z-index: z('formula-button');
     }
 }
