@@ -202,3 +202,78 @@ The unique 16-bit ID `| uint8 deviceId | uint8 channelId |`.
 }
 ```
 
+## BLEDeviceMessage
+
+``
+
+The BLE device's capabilities.
+
+```json
+{
+  "title": "BLEDeviceMessage",
+  "description": "The BLE device's capabilities.",
+  "type": "object",
+  "properties": {
+    "services": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/BLEServiceMessage"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "BLECharacteristicMessage": {
+      "title": "BLECharacteristicMessage",
+      "description": "The BLE characteristic's properties.",
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "properties": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "descriptors": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "uuid"
+      ],
+      "additionalProperties": false
+    },
+    "BLEServiceMessage": {
+      "title": "BLEServiceMessage",
+      "description": "The BLE service's characteristics.",
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "characteristics": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BLECharacteristicMessage"
+          }
+        }
+      },
+      "required": [
+        "uuid"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
+```
+

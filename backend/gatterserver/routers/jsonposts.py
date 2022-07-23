@@ -4,6 +4,8 @@ import logging
 import sys
 
 from fastapi import APIRouter, Response, status
+from fastapi.encoders import jsonable_encoder
+from gatterserver.emitters.ble_emitter import BLEEmitter
 
 from gatterserver import models
 from gatterserver.emitters.emittermanager import EmitterManager, EmitterManagerError
@@ -17,15 +19,18 @@ emitter_manager: EmitterManager = None
 
 
 def register(emitter_manager: EmitterManager):
-    sys.modules[__name__].__dict__["emitter_manager"] = emitter_manager
+    this_module = sys.modules[__name__]
+    this_module.__dict__["emitter_manager"] = emitter_manager
 
 
 @router.post(models.API_CMD_ADD_PATH)
 async def add(add_command: models.AddCommand, response: Response):
+    kwargs = {}
     if add_command.emitterType == models.RAMP_EMITTER_TYPE:
         emitter_class = Ramp
     elif add_command.emitterType == models.BLE_EMITTER_TYPE:
-        emitter_class = Ramp  # TODO: replace with BLE class
+        emitter_class = BLEEmitter
+        kwargs = {"address": add_command.address}
     elif add_command.emitterType == models.SERIAL_EMITTER_TYPE:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"error": f"emitterType: {add_command.emitterType} not implemented"}
@@ -33,9 +38,13 @@ async def add(add_command: models.AddCommand, response: Response):
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"error": f"emitterType: {add_command.emitterType} not matched"}
 
-    device_id = await emitter_manager.register_device(emitter_class)
-    add_command.deviceId = device_id
-    return add_command
+    try:
+        device_id = await emitter_manager.register_device(emitter_class, **kwargs)
+        add_command.deviceId = device_id
+        return add_command
+    except EmitterManagerError:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {"error": "device already added"}
 
 
 @router.post(models.API_CMD_DEL_PATH)
@@ -54,3 +63,17 @@ async def start_stream(start_command: models.StartStreamCommand, response: Respo
     except EmitterManagerError:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"error": f"Could not get {start_command.streamId}"}
+
+
+@router.post("/api/ble/connect")
+async def connect(connect: models.Connect):
+    device: BLEEmitter = emitter_manager[connect.deviceId]
+    if device == None:
+        return {"error": f"Could not get device {connect.deviceId}"}
+
+    connected = await device.connect()
+    if not connected:
+        return {"error": f"Connection to device {connect.deviceId} failed"}
+    
+    return jsonable_encoder(device.device_rep)
+    

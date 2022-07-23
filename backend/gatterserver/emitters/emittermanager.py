@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from collections import defaultdict
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 from gatterserver import models
 from gatterserver.emitters.emitter import Emitter
@@ -12,6 +12,17 @@ from gatterserver.streams import Stream, StreamManager
 from . import const
 
 LOGGER = logging.getLogger(__name__)
+
+import sys
+
+root = logging.getLogger()
+root.setLevel(logging.INFO)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+root.addHandler(handler)
 
 
 class EmitterManagerError(Exception):
@@ -28,8 +39,9 @@ class EmitterManager:
         ]
         self._emitters: Dict[int, Emitter] = defaultdict()
         self._stream_manager = StreamManager()
+        self._unique_ids = set([])
 
-    async def register_device(self, emitter: Emitter) -> int:
+    async def register_device(self, emitter: Emitter, **kwargs) -> int:
         """Register a new device of the given class and return its id."""
         async with self._lock:
             device_id = self._available_device_id_stack.pop()
@@ -37,7 +49,14 @@ class EmitterManager:
                 raise EmitterManagerError(
                     f"Emitter with device_id {device_id} is already registered!"
                 )
-            self._emitters[device_id] = emitter(device_id)
+            if "address" in kwargs.keys():
+                if kwargs["address"] in self._unique_ids:
+                    raise EmitterManagerError(
+                        f"A device with address {kwargs['address']} was already"
+                        f" registered!"
+                    )
+                self._unique_ids.add(kwargs["address"])
+            self._emitters[device_id] = emitter(device_id, **kwargs)
             return device_id
 
     async def start_stream(self, stream_id: models.StreamId):
@@ -95,6 +114,9 @@ class EmitterManager:
                 stream_id = models.StreamId(deviceId=device_id, channelId=channel_id)
                 await self.stream_manager.remove_stream(stream_id)
 
+            if address := getattr(self._emitters[device_id], "address", None):
+                self._unique_ids.remove(address)
+
             del self._emitters[device_id]
             self._available_device_id_stack.append(device_id)
 
@@ -118,3 +140,6 @@ class EmitterManager:
     @property
     def stream_manager(self) -> StreamManager:
         return self._stream_manager
+    
+    def __getitem__(self, item: Any) -> Optional[Emitter]:
+        return self._emitters.get(item)
