@@ -84,5 +84,5 @@ async def read_characteristic(
 ) -> Response:
     device: BLEEmitter = emitter_manager[read_characteristic.deviceId]
     return Response(
-        content=await device.read_characteristic(read_characteristic.handle)
+        content=bytes(await device.read_characteristic(read_characteristic.handle))
     )
