@@ -1,6 +1,7 @@
 """Test emitters."""
 
 import asyncio
+from typing import Callable
 
 import pytest
 
@@ -12,9 +13,12 @@ from gatterserver.streams import StreamPacket
 
 
 def test_emitter_base_class():
-    e = Emitter(0)
+    em = EmitterManager()
+
+    e = Emitter(0, em)
     assert e
     assert e.device_id == 0
+    assert e._em is em
 
 
 @pytest.mark.asyncio
@@ -28,7 +32,7 @@ async def test_emitter_manager_device_registration():
     assert d == 0
     assert await em.is_registered(d)
     assert type(em._emitters[d]) == Emitter
-    assert em._emitters[d].streams == []  # base class has no streams
+    assert em._emitters[d].streams == {}  # base class has no streams
     assert len(em._emitters) == 1
     assert len(em._available_device_id_stack) == 254
 
@@ -67,7 +71,7 @@ async def test_emitter_manager_starts_stops_stream():
 
     r: Ramp = em._emitters[d]
 
-    s = em._emitters[d].get_stream(0)
+    s = em._emitters[d].get_stream(models.StreamId(deviceId=0, channelId=0))
     assert s.task_handle == None
     assert s.send == None
     assert s.start != None
@@ -86,8 +90,8 @@ async def test_emitter_manager_starts_stops_stream():
 
     await em.start_stream(r_stream_id)
 
-    assert type(s.task_handle) == asyncio.Task
-    assert s.send != None
+    assert s.stop is not None
+    assert s.send is not None
 
     async def test_ramp():
         i = -1

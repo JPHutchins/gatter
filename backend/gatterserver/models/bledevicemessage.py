@@ -1,8 +1,9 @@
 """Representation of a BLE device and its capabilities."""
 
-from typing import List
+from typing import List, Optional
 
 from gatterserver.models.gatterbasemodel import GatterBaseModel
+from gatterserver.models.streamid import StreamId
 
 
 class BLECharacteristicReference(GatterBaseModel):
@@ -25,14 +26,19 @@ class BLECharacteristicMessage(GatterBaseModel):
     """The BLE characteristic's properties."""
 
     uuid: str
-    properties: List[str] = []
+    handle: int
+    description: str
+    properties: List[str]
     descriptors: List[BLEDescriptorMessage] = []
+    streamId: Optional[StreamId] = None
 
 
 class BLEServiceMessage(GatterBaseModel):
     """The BLE service's characteristics."""
 
     uuid: str
+    handle: int
+    description: str
     characteristics: List[BLECharacteristicMessage] = []
 
 

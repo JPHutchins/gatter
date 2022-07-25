@@ -1,25 +1,27 @@
 """Define the Emitter interface."""
 
 from abc import ABC
-from typing import List
+from typing import Dict
 
+from gatterserver import models
 from gatterserver.streams import Stream
 
 
 class Emitter(ABC):
     """A physical or virtual device that emits data on request or asynchronously."""
 
-    def __init__(self, device_id: int):
+    def __init__(self, device_id: int, emitter_manager):
         self._device_id = device_id
-        self._streams: List[Stream] = []
+        self._streams: Dict[models.StreamId, Stream] = {}
+        self._em = emitter_manager
 
-    def get_stream(self, channel_id: int) -> Stream:
-        return self._streams[channel_id]
+    def get_stream(self, stream_id: models.StreamId) -> Stream:
+        return self._streams[stream_id]
 
     @property
     def device_id(self) -> int:
         return self._device_id
 
     @property
-    def streams(self) -> List[Stream]:
+    def streams(self) -> Dict[models.StreamId, Stream]:
         return self._streams

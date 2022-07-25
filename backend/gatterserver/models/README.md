@@ -34,6 +34,26 @@ Add a device or stream. Address is required to add a BLE device.
 }
 ```
 
+## Connect
+
+`/api/ble/connect`
+
+Connec to a BLE device.
+
+```json
+{
+  "title": "Connect",
+  "description": "Connec to a BLE device.",
+  "type": "object",
+  "properties": {
+    "deviceId": {
+      "type": "integer"
+    }
+  },
+  "additionalProperties": false
+}
+```
+
 ## DeleteCommand
 
 `/api/cmd/del`
@@ -214,6 +234,9 @@ The BLE device's capabilities.
   "description": "The BLE device's capabilities.",
   "type": "object",
   "properties": {
+    "deviceId": {
+      "type": "integer"
+    },
     "services": {
       "default": [],
       "type": "array",
@@ -222,8 +245,73 @@ The BLE device's capabilities.
       }
     }
   },
+  "required": [
+    "deviceId"
+  ],
   "additionalProperties": false,
   "definitions": {
+    "BLECharacteristicReference": {
+      "title": "BLECharacteristicReference",
+      "description": "Nested reference to a parent characteristic.",
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "handle": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "uuid",
+        "handle"
+      ],
+      "additionalProperties": false
+    },
+    "BLEDescriptorMessage": {
+      "title": "BLEDescriptorMessage",
+      "description": "A descriptor of a BLE characteristic.",
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "handle": {
+          "type": "integer"
+        },
+        "description": {
+          "type": "string"
+        },
+        "characteristic": {
+          "$ref": "#/definitions/BLECharacteristicReference"
+        }
+      },
+      "required": [
+        "uuid",
+        "handle",
+        "description",
+        "characteristic"
+      ],
+      "additionalProperties": false
+    },
+    "StreamId": {
+      "title": "StreamId",
+      "description": "The unique 16-bit ID `| uint8 deviceId | uint8 channelId |`.",
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "integer"
+        },
+        "channelId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "deviceId",
+        "channelId"
+      ],
+      "additionalProperties": false
+    },
     "BLECharacteristicMessage": {
       "title": "BLECharacteristicMessage",
       "description": "The BLE characteristic's properties.",
@@ -232,8 +320,13 @@ The BLE device's capabilities.
         "uuid": {
           "type": "string"
         },
+        "handle": {
+          "type": "integer"
+        },
+        "description": {
+          "type": "string"
+        },
         "properties": {
-          "default": [],
           "type": "array",
           "items": {
             "type": "string"
@@ -243,12 +336,18 @@ The BLE device's capabilities.
           "default": [],
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/BLEDescriptorMessage"
           }
+        },
+        "streamId": {
+          "$ref": "#/definitions/StreamId"
         }
       },
       "required": [
-        "uuid"
+        "uuid",
+        "handle",
+        "description",
+        "properties"
       ],
       "additionalProperties": false
     },
@@ -260,6 +359,12 @@ The BLE device's capabilities.
         "uuid": {
           "type": "string"
         },
+        "handle": {
+          "type": "integer"
+        },
+        "description": {
+          "type": "string"
+        },
         "characteristics": {
           "default": [],
           "type": "array",
@@ -269,7 +374,344 @@ The BLE device's capabilities.
         }
       },
       "required": [
-        "uuid"
+        "uuid",
+        "handle",
+        "description"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
+```
+
+## BLECharacteristicMessage
+
+``
+
+The BLE characteristic's properties.
+
+```json
+{
+  "title": "BLECharacteristicMessage",
+  "description": "The BLE characteristic's properties.",
+  "type": "object",
+  "properties": {
+    "uuid": {
+      "type": "string"
+    },
+    "handle": {
+      "type": "integer"
+    },
+    "description": {
+      "type": "string"
+    },
+    "properties": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "descriptors": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/BLEDescriptorMessage"
+      }
+    },
+    "streamId": {
+      "$ref": "#/definitions/StreamId"
+    }
+  },
+  "required": [
+    "uuid",
+    "handle",
+    "description",
+    "properties"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "BLECharacteristicReference": {
+      "title": "BLECharacteristicReference",
+      "description": "Nested reference to a parent characteristic.",
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "handle": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "uuid",
+        "handle"
+      ],
+      "additionalProperties": false
+    },
+    "BLEDescriptorMessage": {
+      "title": "BLEDescriptorMessage",
+      "description": "A descriptor of a BLE characteristic.",
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "handle": {
+          "type": "integer"
+        },
+        "description": {
+          "type": "string"
+        },
+        "characteristic": {
+          "$ref": "#/definitions/BLECharacteristicReference"
+        }
+      },
+      "required": [
+        "uuid",
+        "handle",
+        "description",
+        "characteristic"
+      ],
+      "additionalProperties": false
+    },
+    "StreamId": {
+      "title": "StreamId",
+      "description": "The unique 16-bit ID `| uint8 deviceId | uint8 channelId |`.",
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "integer"
+        },
+        "channelId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "deviceId",
+        "channelId"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
+```
+
+## BLECharacteristicReference
+
+``
+
+Nested reference to a parent characteristic.
+
+```json
+{
+  "title": "BLECharacteristicReference",
+  "description": "Nested reference to a parent characteristic.",
+  "type": "object",
+  "properties": {
+    "uuid": {
+      "type": "string"
+    },
+    "handle": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "uuid",
+    "handle"
+  ],
+  "additionalProperties": false
+}
+```
+
+## BLEDescriptorMessage
+
+``
+
+A descriptor of a BLE characteristic.
+
+```json
+{
+  "title": "BLEDescriptorMessage",
+  "description": "A descriptor of a BLE characteristic.",
+  "type": "object",
+  "properties": {
+    "uuid": {
+      "type": "string"
+    },
+    "handle": {
+      "type": "integer"
+    },
+    "description": {
+      "type": "string"
+    },
+    "characteristic": {
+      "$ref": "#/definitions/BLECharacteristicReference"
+    }
+  },
+  "required": [
+    "uuid",
+    "handle",
+    "description",
+    "characteristic"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "BLECharacteristicReference": {
+      "title": "BLECharacteristicReference",
+      "description": "Nested reference to a parent characteristic.",
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "handle": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "uuid",
+        "handle"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
+```
+
+## BLEServiceMessage
+
+``
+
+The BLE service's characteristics.
+
+```json
+{
+  "title": "BLEServiceMessage",
+  "description": "The BLE service's characteristics.",
+  "type": "object",
+  "properties": {
+    "uuid": {
+      "type": "string"
+    },
+    "handle": {
+      "type": "integer"
+    },
+    "description": {
+      "type": "string"
+    },
+    "characteristics": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/BLECharacteristicMessage"
+      }
+    }
+  },
+  "required": [
+    "uuid",
+    "handle",
+    "description"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "BLECharacteristicReference": {
+      "title": "BLECharacteristicReference",
+      "description": "Nested reference to a parent characteristic.",
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "handle": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "uuid",
+        "handle"
+      ],
+      "additionalProperties": false
+    },
+    "BLEDescriptorMessage": {
+      "title": "BLEDescriptorMessage",
+      "description": "A descriptor of a BLE characteristic.",
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "handle": {
+          "type": "integer"
+        },
+        "description": {
+          "type": "string"
+        },
+        "characteristic": {
+          "$ref": "#/definitions/BLECharacteristicReference"
+        }
+      },
+      "required": [
+        "uuid",
+        "handle",
+        "description",
+        "characteristic"
+      ],
+      "additionalProperties": false
+    },
+    "StreamId": {
+      "title": "StreamId",
+      "description": "The unique 16-bit ID `| uint8 deviceId | uint8 channelId |`.",
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "integer"
+        },
+        "channelId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "deviceId",
+        "channelId"
+      ],
+      "additionalProperties": false
+    },
+    "BLECharacteristicMessage": {
+      "title": "BLECharacteristicMessage",
+      "description": "The BLE characteristic's properties.",
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "handle": {
+          "type": "integer"
+        },
+        "description": {
+          "type": "string"
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "descriptors": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BLEDescriptorMessage"
+          }
+        },
+        "streamId": {
+          "$ref": "#/definitions/StreamId"
+        }
+      },
+      "required": [
+        "uuid",
+        "handle",
+        "description",
+        "properties"
       ],
       "additionalProperties": false
     }

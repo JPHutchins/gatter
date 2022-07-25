@@ -3,16 +3,18 @@
 import asyncio
 import logging
 from abc import abstractmethod
-from typing import Awaitable, Union
+from typing import Awaitable, Callable, Union
 
+from gatterserver import models
 from gatterserver.emitters.emitter import Emitter, Stream
+from gatterserver.emitters.emittermanager import EmitterManager
 
 LOGGER = logging.getLogger(__name__)
 
 
 class SignalGenerator(Emitter):
-    def __init__(self, device_id: int):
-        super().__init__(device_id)
+    def __init__(self, device_id: int, emitter_manager: EmitterManager):
+        super().__init__(device_id, emitter_manager)
         self._stop = False
 
     @abstractmethod
@@ -24,8 +26,8 @@ class SignalGenerator(Emitter):
 
 
 class Ramp(SignalGenerator):
-    def __init__(self, device_id: int):
-        super().__init__(device_id)
+    def __init__(self, device_id: int, emitter_manager: EmitterManager):
+        super().__init__(device_id, emitter_manager)
 
         self._max: Union[float, int] = None
         self._step_interval_s: float = None
@@ -35,7 +37,9 @@ class Ramp(SignalGenerator):
 
         self.configure(0, 10, 1, 0.001)
 
-        self._streams = [Stream(start=self.start_stream)]
+        self._stream_id = models.StreamId(deviceId=device_id, channelId=0)
+        print(self._stream_id)
+        self._streams[self._stream_id] = Stream(start=self.start_stream)
 
     def configure(
         self,
@@ -51,20 +55,29 @@ class Ramp(SignalGenerator):
         if self._val == None:
             self._val = min
 
-    def start_stream(self, send: Awaitable) -> asyncio.Task:
+    async def start_stream(self, send: Awaitable) -> Callable[[], Awaitable]:
         async def _task(send: Awaitable):
-            while True:
-                if self._val > self._max:
-                    self._val = self._min
-                if self._stop:  # TODO: think about timing and sync
-                    self._stop = False
-                    break
-                await asyncio.gather(
-                    send(int.to_bytes(self._val, 4, "little", signed=True)),
-                    asyncio.sleep(self._step_interval_s),
-                )
-                self._val += self._step
+            try:
+                while True:
+                    if self._val > self._max:
+                        self._val = self._min
+                    if self._stop:  # TODO: think about timing and sync
+                        self._stop = False
+                        break
+                    await asyncio.gather(
+                        send(int.to_bytes(self._val, 4, "little", signed=True)),
+                        asyncio.sleep(self._step_interval_s),
+                    )
+                    self._val += self._step
+            except asyncio.exceptions.CancelledError:
+                LOGGER.debug("Task canceled.")
 
-        return asyncio.create_task(
+        self._streams[self._stream_id].task_handle = asyncio.create_task(
             _task(send), name=f"device_id: {self._device_id}, stream_id: 0"
         )
+
+        async def stop():
+            self._streams[self._stream_id].task_handle.cancel()
+            await self._streams[self._stream_id].task_handle
+
+        return stop

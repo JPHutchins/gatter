@@ -5,9 +5,9 @@ import sys
 
 from fastapi import APIRouter, Response, status
 from fastapi.encoders import jsonable_encoder
-from gatterserver.emitters.ble_emitter import BLEEmitter
 
 from gatterserver import models
+from gatterserver.emitters.ble_emitter import BLEEmitter
 from gatterserver.emitters.emittermanager import EmitterManager, EmitterManagerError
 from gatterserver.emitters.signalgen import Ramp
 
@@ -74,6 +74,15 @@ async def connect(connect: models.Connect):
     connected = await device.connect()
     if not connected:
         return {"error": f"Connection to device {connect.deviceId} failed"}
-    
+
     return jsonable_encoder(device.device_rep)
-    
+
+
+@router.post("/api/ble/read/characteristic")
+async def read_characteristic(
+    read_characteristic: models.ReadCharacteristic,
+) -> Response:
+    device: BLEEmitter = emitter_manager[read_characteristic.deviceId]
+    return Response(
+        content=await device.read_characteristic(read_characteristic.handle)
+    )

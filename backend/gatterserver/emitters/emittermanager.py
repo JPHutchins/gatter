@@ -20,7 +20,7 @@ root.setLevel(logging.INFO)
 
 handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 root.addHandler(handler)
 
@@ -56,7 +56,7 @@ class EmitterManager:
                         f" registered!"
                     )
                 self._unique_ids.add(kwargs["address"])
-            self._emitters[device_id] = emitter(device_id, **kwargs)
+            self._emitters[device_id] = emitter(device_id, self, **kwargs)
             return device_id
 
     async def start_stream(self, stream_id: models.StreamId):
@@ -64,7 +64,7 @@ class EmitterManager:
         async with self._lock:
             stream = self._get_stream(stream_id)
 
-            if stream.task_handle != None:
+            if stream.stop != None:
                 LOGGER.info(f"{stream_id} was already started.")
                 return
 
@@ -72,7 +72,7 @@ class EmitterManager:
                 LOGGER.info(f"Registering {stream_id} with StreamManager.")
                 stream.send = await self.stream_manager.add_stream(stream_id)
 
-            stream.task_handle = stream.start(stream.send)
+            stream.stop = await stream.start(stream.send)
             LOGGER.debug(f"{stream_id} started.")
 
     async def stop_stream(self, stream_id: models.StreamId):
@@ -80,12 +80,16 @@ class EmitterManager:
         async with self._lock:
             stream = self._get_stream(stream_id)
 
-            if stream.task_handle == None:
+            if stream.stop == None:
                 LOGGER.info(f"{stream_id} was already stopped.")
                 return
 
-            stream.task_handle.cancel()
+            await stream.stop()
+            if stream.task_handle is not None:
+                await stream.task_handle
+
             stream.task_handle = None
+            stream.stop = None
             LOGGER.debug(f"{stream_id} stopped.")
 
     async def start_all_streams(self, device_id: int):
@@ -132,7 +136,7 @@ class EmitterManager:
     def _get_stream(self, stream_id: models.StreamId) -> Stream:
         """Helper method.  Only call inside a `async with self._lock:` block."""
         try:
-            return self._get_streams(stream_id.deviceId)[stream_id.channelId]
+            return self._get_streams(stream_id.deviceId)[stream_id]
         except Exception as e:
             LOGGER.error(e, exc_info=True)
             raise EmitterManagerError(f"Could not get {stream_id}.")
@@ -140,6 +144,6 @@ class EmitterManager:
     @property
     def stream_manager(self) -> StreamManager:
         return self._stream_manager
-    
+
     def __getitem__(self, item: Any) -> Optional[Emitter]:
         return self._emitters.get(item)
