@@ -13,7 +13,7 @@ from bleak.exc import BleakError
 from gatterserver import models
 from gatterserver.emitters.emitter import Emitter
 from gatterserver.emitters.emittermanager import EmitterManager
-from gatterserver.streams import StreamPacket
+from gatterserver.streams import StreamPacket, Stream
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class BLEEmitter(Emitter):
         self._services: Dict[int, BleakGATTService] = {}
         self._characteristics: Dict[int, BleakGATTCharacteristic] = {}
 
-        self._streams = []
+        self._streams = {}
         self._next_channel_id = 0
 
     async def connect(self) -> bool:
@@ -131,7 +131,7 @@ class BLEEmitter(Emitter):
 
             return start
 
-        self._streams[stream_id].start = _make_start(send, characteristic.handle)
+        self._streams[stream_id] = Stream(start=_make_start(send, characteristic.handle))
 
     @property
     def address(self) -> str:
