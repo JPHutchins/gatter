@@ -9,11 +9,10 @@ from uuid import UUID
 from bleak import BleakClient
 from bleak.backends.service import BleakGATTCharacteristic, BleakGATTService
 from bleak.exc import BleakError
-
 from gatterserver import models
 from gatterserver.emitters.emitter import Emitter
 from gatterserver.emitters.emittermanager import EmitterManager
-from gatterserver.streams import StreamPacket, Stream
+from gatterserver.streams import Stream, StreamPacket
 
 LOGGER = logging.getLogger(__name__)
 
@@ -131,7 +130,9 @@ class BLEEmitter(Emitter):
 
             return start
 
-        self._streams[stream_id] = Stream(start=_make_start(send, characteristic.handle))
+        self._streams[stream_id] = Stream(
+            start=_make_start(send, characteristic.handle)
+        )
 
     @property
     def address(self) -> str:

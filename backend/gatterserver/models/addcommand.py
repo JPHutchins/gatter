@@ -2,10 +2,9 @@
 
 from typing import Literal
 
-from pydantic import validator
-
 from gatterserver.models import const
 from gatterserver.models.gatterbasemodel import GatterBaseModel
+from pydantic import validator
 
 
 class AddCommand(GatterBaseModel):

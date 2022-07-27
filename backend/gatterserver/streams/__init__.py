@@ -7,9 +7,8 @@ from collections import deque
 from typing import Awaitable, Callable
 
 from anyio import ExceptionGroup
-from pydantic import BaseModel
-
 from gatterserver import models
+from pydantic import BaseModel
 
 LOGGER = logging.getLogger(__name__)
 

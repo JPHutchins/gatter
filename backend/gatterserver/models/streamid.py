@@ -1,8 +1,7 @@
 """The unique 16-bit ID `| uint8 deviceId | uint8 channelId |`. """
 
-from pydantic import validator
-
 from gatterserver.models.gatterbasemodel import GatterBaseModel
+from pydantic import validator
 
 
 class StreamId(GatterBaseModel):

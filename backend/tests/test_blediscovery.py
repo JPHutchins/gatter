@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
-
 from gatterserver.api import app
 from gatterserver.ble.discovery import BLEDiscoveryManager
 

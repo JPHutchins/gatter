@@ -5,7 +5,6 @@ import sys
 
 from fastapi import APIRouter, Response, status
 from fastapi.encoders import jsonable_encoder
-
 from gatterserver import models
 from gatterserver.emitters.ble_emitter import BLEEmitter
 from gatterserver.emitters.emittermanager import EmitterManager, EmitterManagerError

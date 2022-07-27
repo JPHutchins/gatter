@@ -5,7 +5,6 @@ import json
 
 import pytest
 from fastapi.testclient import TestClient
-
 from gatterserver import models
 from gatterserver.api import app
 

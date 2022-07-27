@@ -4,7 +4,6 @@ import asyncio
 from typing import Callable
 
 import pytest
-
 from gatterserver import models
 from gatterserver.emitters.emitter import Emitter
 from gatterserver.emitters.emittermanager import EmitterManager

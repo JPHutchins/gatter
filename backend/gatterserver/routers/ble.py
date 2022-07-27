@@ -5,7 +5,6 @@ import sys
 
 from fastapi import APIRouter, WebSocket
 from fastapi.encoders import jsonable_encoder
-
 from gatterserver import models
 from gatterserver.ble.discovery import BLEDiscoveryManager
 

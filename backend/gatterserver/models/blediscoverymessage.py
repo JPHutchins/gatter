@@ -3,9 +3,8 @@
 from base64 import b64encode
 from typing import Dict, List
 
-from pydantic import validator
-
 from gatterserver.models.gatterbasemodel import GatterBaseModel
+from pydantic import validator
 
 
 class BLEDiscoveryMessage(GatterBaseModel):
