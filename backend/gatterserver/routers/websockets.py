@@ -15,7 +15,8 @@ emitter_manager: EmitterManager = None
 
 
 def register(emitter_manager: EmitterManager):
-    sys.modules[__name__].__dict__["emitter_manager"] = emitter_manager
+    this_module = sys.modules[__name__]
+    this_module.__dict__["emitter_manager"] = emitter_manager
 
 
 @router.websocket("/api/ws/streams")

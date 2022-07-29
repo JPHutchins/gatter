@@ -19,3 +19,6 @@ class StreamId(GatterBaseModel):
 
     def __hash__(self):
         return (self.__dict__["deviceId"] << 8) | self.__dict__["channelId"]
+
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()

@@ -17,11 +17,12 @@ discovery_manager: BLEDiscoveryManager = None
 
 
 def register(discovery_manager: BLEDiscoveryManager):
-    sys.modules[__name__].__dict__["discovery_manager"] = discovery_manager
+    this_module = sys.modules[__name__]
+    this_module.__dict__["discovery_manager"] = discovery_manager
 
 
 @router.websocket("/api/ws/blediscovery")
-async def websocket_endpoint(websocket: WebSocket):
+async def blediscover_endpoint(websocket: WebSocket):
     await websocket.accept()
     async for device in discovery_manager.receive():
         discovery_message = models.BLEDiscoveryMessage(
@@ -33,6 +34,11 @@ async def websocket_endpoint(websocket: WebSocket):
             manufacturerData=device.metadata["manufacturer_data"],
         )
         await websocket.send_json(jsonable_encoder(discovery_message))
+
+
+@router.post("/api/ws/bledevice")
+async def bledevice_endpoint(command: models.BLEDeviceMessage):
+    emitter_manager
 
 
 @router.post("/api/ble/discovery")

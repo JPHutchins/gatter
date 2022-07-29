@@ -3,7 +3,15 @@
 import os
 
 from gatterserver.models.addcommand import AddCommand
+from gatterserver.models.bledevicemessage import (
+    BLECharacteristicMessage,
+    BLECharacteristicReference,
+    BLEDescriptorMessage,
+    BLEDeviceMessage,
+    BLEServiceMessage,
+)
 from gatterserver.models.blediscoverymessage import BLEDiscoveryMessage
+from gatterserver.models.connect import Connect
 from gatterserver.models.const import (
     API_CMD_ADD_PATH,
     API_CMD_DEL_PATH,
@@ -14,6 +22,7 @@ from gatterserver.models.const import (
 )
 from gatterserver.models.deletecommand import DeleteCommand
 from gatterserver.models.discoverycommand import DiscoveryCommand
+from gatterserver.models.readcharacteristic import ReadCharacteristic
 from gatterserver.models.startstreamcommand import StartStreamCommand
 from gatterserver.models.streamid import StreamId
 
@@ -21,11 +30,17 @@ if __name__ == "__main__":
     # Generate the README.md
     models_list = (
         (AddCommand, API_CMD_ADD_PATH),
+        (Connect, "/api/ble/connect"),
         (DeleteCommand, API_CMD_DEL_PATH),
         (StartStreamCommand, API_CMD_START_STREAM_PATH),
         (BLEDiscoveryMessage, "/api/ws/blediscovery"),
         (DiscoveryCommand, "/api/ble/discovery"),
         (StreamId, "object"),
+        (BLEDeviceMessage, ""),
+        (BLECharacteristicMessage, ""),
+        (BLECharacteristicReference, ""),
+        (BLEDescriptorMessage, ""),
+        (BLEServiceMessage, ""),
     )
 
     with open(f"{os.path.dirname(os.path.realpath(__file__))}/README.md", "w+") as file:

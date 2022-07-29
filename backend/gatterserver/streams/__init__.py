@@ -14,9 +14,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Stream(BaseModel):
-    start: Callable[[Awaitable], asyncio.Task]
+    start: Callable[[Awaitable], Callable[[], Awaitable]]
+    stop: Callable[[], Awaitable] = None
     task_handle: asyncio.Task = None
-    send: Awaitable = None
+    send: Callable[[], Awaitable] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -73,7 +74,8 @@ class StreamManager:
                         self._pending_data.append(StreamPacket(stream_id, data))
                         self._semaphore.release()
                     except Exception as e:
-                        LOGGER.critical(e, exc_info=True)
+                        LOGGER.exception()
+                        raise e
 
             return _send
 
