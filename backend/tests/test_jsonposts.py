@@ -5,6 +5,7 @@ import json
 
 import pytest
 from fastapi.testclient import TestClient
+
 from gatterserver import models
 from gatterserver.api import app
 
@@ -107,3 +108,33 @@ async def test_add_ble():
         "emitterType": models.BLE_EMITTER_TYPE,
         "deviceId": 5,
     }
+
+
+@pytest.mark.asyncio
+async def test_connect_to_ble():
+    command = {"deviceId": 999}
+    response = client.post("/api/ble/connect", data=json.dumps(command))
+    assert response.status_code == 400
+    assert response.content == b'{"error":"Could not get device 999"}'
+
+    command = {"deviceId": 0}
+    response = client.post("/api/ble/connect", data=json.dumps(command))
+    assert response.status_code == 400
+    assert response.content == b'{"error":"Device 0 is not a BLE device"}'
+
+    # TODO: mock and patch
+
+
+@pytest.mark.asyncio
+async def test_read_characteristic():
+    command = {"deviceId": 999, "handle": 2}
+    response = client.post("/api/ble/read/characteristic", data=json.dumps(command))
+    assert response.status_code == 400
+    assert response.content == b'{"error":"Could not get device 999"}'
+
+    command = {"deviceId": 0, "handle": 3}
+    response = client.post("/api/ble/read/characteristic", data=json.dumps(command))
+    assert response.status_code == 400
+    assert response.content == b'{"error":"Device 0 is not a BLE device"}'
+
+    # TODO: mock and patch

@@ -1,6 +1,5 @@
 """Define a BLE Emitter."""
 
-import asyncio
 import logging
 from asyncio.exceptions import TimeoutError
 from typing import Awaitable, Callable, Dict, List, Optional, Union
@@ -9,35 +8,40 @@ from uuid import UUID
 from bleak import BleakClient
 from bleak.backends.service import BleakGATTCharacteristic, BleakGATTService
 from bleak.exc import BleakError
+
 from gatterserver import models
 from gatterserver.emitters.emitter import Emitter
 from gatterserver.emitters.emittermanager import EmitterManager
-from gatterserver.streams import Stream, StreamPacket
+from gatterserver.streams import Stream
 
 LOGGER = logging.getLogger(__name__)
+
+DEFAULT_CONNECTION_TIMEOUT = 30.0
 
 
 class BLEEmitter(Emitter):
     def __init__(self, device_id: int, emitter_manager: EmitterManager, address: str):
         super().__init__(device_id, emitter_manager)
         self._address = address
+        self._ble_device_message = models.BLEDeviceMessage(deviceId=self.device_id)
         self._client = BleakClient(address)
         self._services: Dict[int, BleakGATTService] = {}
         self._characteristics: Dict[int, BleakGATTCharacteristic] = {}
-
         self._streams = {}
         self._next_channel_id = 0
 
-    async def connect(self) -> bool:
+    async def connect(self, timeout: float = DEFAULT_CONNECTION_TIMEOUT) -> bool:
         try:
-            self._connected = await self.bc.connect(timeout=30.0)
+            connected = await self.bc.connect(timeout=timeout)
         except (BleakError, TimeoutError):
             return False
 
         LOGGER.info("Connected to %s", self._address)
 
-        if not self._connected:
+        if not connected:
             return False
+
+        await self._examine_gatt()
 
         return True
 
@@ -52,6 +56,7 @@ class BLEEmitter(Emitter):
 
     async def get_services(self):
         await self.bc.get_services()
+        await self._examine_gatt()
 
     async def read_characteristic(
         self, char_specifier: Union[int, str, UUID]
@@ -76,12 +81,12 @@ class BLEEmitter(Emitter):
 
     async def write_descriptor(
         self, handle: int, data: Union[bytes, bytearray, memoryview]
-    ) -> None:
-        return self.bc.write_gatt_descriptor(handle, data)
+    ):
+        return await self.bc.write_gatt_descriptor(handle, data)
 
     async def start_notify(self, stream_id: models.StreamId, **kwargs):
         if self._streams[stream_id].stop is not None:
-            LOGGER.warning("Stream is already running!")
+            LOGGER.warning("Stream is already running?")
             return
         self._streams[stream_id].stop = await self._streams[stream_id].start(**kwargs)
 
@@ -90,8 +95,9 @@ class BLEEmitter(Emitter):
             LOGGER.warning("Stream isn't running?")
             return
         await self._streams[stream_id].stop()
+        self._streams[stream_id].stop = None
 
-    def _maybe_register_stream(
+    async def _maybe_register_stream(
         self, characteristic: BleakGATTCharacteristic
     ) -> Optional[models.StreamId]:
         """Register a characteristic as a stream if it supports Notify or Indicate."""
@@ -109,38 +115,43 @@ class BLEEmitter(Emitter):
         self._next_channel_id += 1
 
         # register the stream to get the callback that will stream data
-        send = self._em.stream_manager.add_stream(stream_id)
+        send = await self._em.stream_manager.add_stream(stream_id)
 
         # make a closure of send and characteristic_handle
         def _make_start(
             send: Awaitable, characteristic_handle: int
         ) -> Callable[..., Awaitable]:
-            async def start(**kwargs) -> Callable[[], Awaitable]:
+            async def start(
+                _: Optional[Callable[[bytes], Awaitable]] = None, **kwargs
+            ) -> Callable[[], Awaitable]:
+                """Start notifications and return the awaitable to stop them."""
+
                 async def callback(_: int, data: bytearray):
                     await send(data)
 
                 await self.bc.start_notify(characteristic_handle, callback, **kwargs)
 
-                def stop():
-                    return asyncio.ensure_future(
-                        self.bc.stop_notify(characteristic_handle)
-                    )
+                async def stop():
+                    return await self.bc.stop_notify(characteristic_handle)
 
                 return stop
 
             return start
 
         self._streams[stream_id] = Stream(
-            start=_make_start(send, characteristic.handle)
+            start=_make_start(send, characteristic.handle), send=send
         )
 
-    @property
-    def address(self) -> str:
-        return self._address
+        return stream_id
 
-    @property
-    def device_rep(self) -> models.BLEDeviceMessage:
-        device_message = models.BLEDeviceMessage(deviceId=self.device_id)
+    async def _examine_gatt(self):
+        """Iterate the GATT to create a JSONifiable rep and register streams."""
+
+        # first remove all of the old streams
+        for stream_id in self._streams.keys():
+            self._em.stream_manager.remove_stream(stream_id)
+        self._streams = {}
+        self._next_channel_id = 0
 
         for service in self.bc.services:
             service_message = models.BLEServiceMessage(
@@ -148,16 +159,14 @@ class BLEEmitter(Emitter):
                 handle=service.handle,
                 description=service.description,
             )
-
             for characteristic in service.characteristics:
                 characteristic_message = models.BLECharacteristicMessage(
                     uuid=characteristic.uuid,
                     handle=characteristic.handle,
                     properties=characteristic.properties,
                     description=characteristic.description,
-                    streamId=self._maybe_register_stream(characteristic),
+                    streamId=await self._maybe_register_stream(characteristic),
                 )
-
                 for descriptor in characteristic.descriptors:
                     descriptor_message = models.BLEDescriptorMessage(
                         uuid=descriptor.uuid,
@@ -168,15 +177,14 @@ class BLEEmitter(Emitter):
                             handle=descriptor.characteristic_handle,
                         ),
                     )
-
                     characteristic_message.descriptors.append(descriptor_message)
-
                 service_message.characteristics.append(characteristic_message)
+            self._ble_device_message.services.append(service_message)
 
-            device_message.services.append(service_message)
-
-        LOGGER.info(device_message)
-        return device_message
+    @property
+    def address(self) -> str:
+        """The device address."""
+        return self._address
 
     @property
     def bc(self) -> BleakClient:
@@ -184,6 +192,16 @@ class BLEEmitter(Emitter):
         return self._client
 
     @property
+    def ble_device_message(self) -> models.BLEDeviceMessage:
+        """The JSONifiable representation of the GATT."""
+        return self._ble_device_message
+
+    @property
     def characteristics_list(self) -> List[str]:
         """The list of characteristics."""
         return [str(UUID(int=int_id)) for int_id in self._characteristics.keys()]
+
+    @property
+    def connected(self) -> bool:
+        """The connection status."""
+        return bool(self.bc.is_connected)
