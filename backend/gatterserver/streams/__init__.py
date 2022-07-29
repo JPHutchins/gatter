@@ -6,7 +6,6 @@ import struct
 from collections import deque
 from typing import Awaitable, Callable
 
-from anyio import ExceptionGroup
 from pydantic import BaseModel
 
 from gatterserver import models
