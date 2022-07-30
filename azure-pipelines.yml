@@ -11,6 +11,10 @@ pool:
 
 steps:
 
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.10'
+
 - script: |
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
     export PATH=$PATH:$HOME/.poetry/bin
