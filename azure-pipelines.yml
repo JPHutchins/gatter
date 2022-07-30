@@ -1,0 +1,19 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- develop
+
+pool:
+  vmImage: windows-latest
+
+steps:
+
+- script: |
+    cd backend
+    poetry install
+    poetry run black --check .
+    poetry run isort --check-only .
+  displayName: 'Formatting'
