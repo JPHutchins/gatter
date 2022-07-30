@@ -1,0 +1,76 @@
+[tool.poetry]
+name = "gatter"
+version = "0.0.0"
+description = "Stream, manipulate, and visualize sensor data"
+authors = ["J.P. Hutchins <jphutchins@gmail.com>", "Julie Adams <julie.ellen.adams@gmail.com"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pydantic = "^1.9.1"
+bleak = "^0.15.0"
+fastapi = "^0.79.0"
+uvicorn = "^0.18.2"
+websockets = "^10.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+mypy = "^0.971"
+black = "^22.6.0"
+isort = "^5.10.1"
+pytest-asyncio = "^0.19.0"
+flake8 = "^4.0.1"
+pytest-cov = "^3.0.0"
+tox = "^3.25.1"
+requests = "^2.28.1"
+
+[tool.black]
+line-length = 100
+skip-string-normalization = 1
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+
+[tool.mypy]
+follow_imports = "skip"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+skipsdist = True
+envlist = py310
+
+[testenv]
+whitelist_externals = poetry
+commands = 
+    poetry install
+    poetry run black --check .
+    poetry run isort --check-only .
+    poetry run flake8 .
+    poetry run mypy .
+    poetry run coverage erase
+    poetry run coverage run -m pytest
+    poetry run coverage report
+
+[testenv:format]
+deps = 
+    black
+    isort
+skip_install = True
+commands =
+    isort .
+    black .
+
+[testenv:lint]
+whitelist_externals = poetry
+commands =
+    poetry install
+    poetry run flake8 .
+    poetry run mypy .
+"""
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

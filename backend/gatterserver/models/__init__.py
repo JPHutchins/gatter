@@ -47,10 +47,10 @@ if __name__ == "__main__":
         file.write("# Models\n\n")
 
         for model, path in models_list:
-            schema = model.schema()
+            schema = model.schema()  # type: ignore
             file.write(f"## {schema['title']}\n\n")
             file.write(f"`{path}`\n\n")
             file.write(f"{schema['description']}\n\n")
             file.write("```json\n")
-            file.write(model.schema_json(indent=2))
+            file.write(model.schema_json(indent=2))  # type: ignore
             file.write("\n```\n\n")

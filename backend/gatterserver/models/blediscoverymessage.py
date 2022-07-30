@@ -1,7 +1,7 @@
 """Message sent when a BLE device is discovered."""
 
 from base64 import b64encode
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from pydantic import validator
 
@@ -14,7 +14,7 @@ class BLEDiscoveryMessage(GatterBaseModel):
     address: str
     rssi: int
     rssiAverage: float
-    name: str = None
+    name: Optional[str] = None
     services: List[str] = []
     manufacturerData: Dict[int, bytes] = {}
 

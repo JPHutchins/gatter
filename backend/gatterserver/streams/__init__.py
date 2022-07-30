@@ -4,9 +4,9 @@ import asyncio
 import logging
 import struct
 from collections import deque
-from typing import Awaitable, Callable
+from typing import AsyncIterator, Awaitable, Callable, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel  # type: ignore
 
 from gatterserver import models
 
@@ -14,10 +14,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Stream(BaseModel):
-    start: Callable[[Awaitable], Callable[[], Awaitable]]
-    stop: Callable[[], Awaitable] = None
-    task_handle: asyncio.Task = None
-    send: Callable[[], Awaitable] = None
+    start: Callable[[Optional[Callable[[bytes], Awaitable]]], Awaitable]
+    stop: Optional[Callable[[], Awaitable]] = None
+    task_handle: Optional[asyncio.Task] = None
+    send: Optional[Callable[[bytes], Awaitable]] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -32,15 +32,13 @@ class StreamPacket:
         self._raw_data_length = len(raw_data)
 
         self._byte_array = (
-            struct.pack(
-                "BBH", stream_id.deviceId, stream_id.channelId, self._raw_data_length
-            )
+            struct.pack("BBH", stream_id.deviceId, stream_id.channelId, self._raw_data_length)
             + self._raw_data
         )
 
     @property
     def byte_array(self) -> bytes:
-        """The bytes | device_id u8 | channel_id u8 | length u16 | data[0] u8 | data[length-1] u8 |"""
+        """The bytes |device_id u8|channel_id u8|length u16|data[0] u8|data[length-1] u8|"""
         return self._byte_array
 
     @property
@@ -58,7 +56,7 @@ class StreamManager:
         self._semaphore = asyncio.Semaphore(0)
         self._streams = {}
 
-    async def add_stream(self, stream_id: models.StreamId) -> Awaitable:
+    async def add_stream(self, stream_id: models.StreamId) -> Callable[[bytes], Awaitable]:
         """Register a stream and return an awaitable used to queue packets."""
         async with self._lock:
             if stream_id in self._streams:
@@ -67,14 +65,14 @@ class StreamManager:
 
         LOGGER.info(f"{stream_id} added.")
 
-        def _send_wrapper(stream_id: models.StreamId) -> Awaitable:
+        def _send_wrapper(stream_id: models.StreamId) -> Callable[[bytes], Awaitable]:
             async def _send(data: bytes):
                 async with self._lock:
                     try:
                         self._pending_data.append(StreamPacket(stream_id, data))
                         self._semaphore.release()
                     except Exception as e:
-                        LOGGER.exception()
+                        LOGGER.exception("Exception while sending data to queue.")
                         raise e
 
             return _send
@@ -85,13 +83,11 @@ class StreamManager:
         """Remove a stream."""
         async with self._lock:
             if stream_id not in self._streams:
-                LOGGER.warning(
-                    f"{stream_id} cannot be removed because it does not exist."
-                )
+                LOGGER.warning(f"{stream_id} cannot be removed because it does not exist.")
                 return
             del self._streams[stream_id]
 
-    async def receive(self) -> StreamPacket:
+    async def receive(self) -> AsyncIterator[StreamPacket]:
         while True:
             await self._semaphore.acquire()
             async with self._lock:

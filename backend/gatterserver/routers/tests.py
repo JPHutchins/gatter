@@ -23,7 +23,7 @@ async def test_websocket_endpoint(websocket: WebSocket):
 
 
 @router.websocket("/tests/ws/bytes")
-async def test_websocket_endpoint(websocket: WebSocket):
+async def test_websocket_endpoint_bytes(websocket: WebSocket):
     await websocket.accept()
     await websocket.send_bytes(b"\x13\x37")
     await websocket.close()

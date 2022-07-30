@@ -1,6 +1,5 @@
 [PROJECT_OPTIONS]
     PROJECT_NAME=gatter
-    PYTHON_VENV=backend/venv
 [ALIASES]
     tests=pytest $ENVR_ROOT/backend/tests
     dev=npm run dev --prefix $ENVR_ROOT/frontend

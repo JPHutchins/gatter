@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from abc import abstractmethod
-from typing import Awaitable, Callable, Union
+from typing import Awaitable, Callable, Optional, Union
 
 from gatterserver import models
 from gatterserver.emitters.emitter import Emitter, Stream
@@ -18,7 +18,7 @@ class SignalGenerator(Emitter):
         self._stop = False
 
     @abstractmethod
-    async def start_stream(self, send: Awaitable):
+    async def start_stream(self, send: Callable[[bytes], Awaitable]):
         raise NotImplementedError
 
     def stop_stream(self):
@@ -29,11 +29,11 @@ class Ramp(SignalGenerator):
     def __init__(self, device_id: int, emitter_manager: EmitterManager):
         super().__init__(device_id, emitter_manager)
 
-        self._max: Union[float, int] = None
-        self._step_interval_s: float = None
-        self._step: Union[float, int] = None
-        self._min: Union[float, int] = None
-        self._val: Union[float, int] = None
+        self._max: Union[float, int, None] = None
+        self._step_interval_s: Optional[float] = None
+        self._step: Union[float, int, None] = None
+        self._min: Union[float, int, None] = None
+        self._val: Union[float, int, None] = None
 
         self.configure(0, 10, 1, 0.001)
 
@@ -48,27 +48,27 @@ class Ramp(SignalGenerator):
         step: Union[float, int],
         step_interval_s: float,
     ):
-        self._min: Union[float, int] = min
-        self._max: Union[float, int] = max
-        self._step: Union[float, int] = step
-        self._step_interval_s: float = step_interval_s
-        if self._val == None:
+        self._min = min
+        self._max = max
+        self._step = step
+        self._step_interval_s = step_interval_s
+        if self._val is None:
             self._val = min
 
-    async def start_stream(self, send: Awaitable) -> Callable[[], Awaitable]:
-        async def _task(send: Awaitable):
+    async def start_stream(self, send: Callable[[bytes], Awaitable]) -> Callable[[], Awaitable]:
+        async def _task(send: Callable[[bytes], Awaitable]):
             try:
                 while True:
-                    if self._val > self._max:
+                    if self._val > self._max:  # type: ignore
                         self._val = self._min
                     if self._stop:  # TODO: think about timing and sync
                         self._stop = False
                         break
                     await asyncio.gather(
-                        send(int.to_bytes(self._val, 4, "little", signed=True)),
-                        asyncio.sleep(self._step_interval_s),
+                        send(int.to_bytes(self._val, 4, "little", signed=True)),  # type: ignore
+                        asyncio.sleep(self._step_interval_s),  # type: ignore
                     )
-                    self._val += self._step
+                    self._val += self._step  # type: ignore
             except asyncio.exceptions.CancelledError:
                 LOGGER.debug("Task canceled.")
 

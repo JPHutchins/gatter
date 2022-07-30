@@ -1,8 +1,6 @@
 # envr
 envr-local
 
-# pytest
+# python
 .pytest_cache
-
-# vscode
-.vscode
+.mypy_cache

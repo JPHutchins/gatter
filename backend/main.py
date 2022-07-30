@@ -2,7 +2,7 @@
 
 import logging
 
-import uvicorn
+import uvicorn  # type: ignore
 
 LOGGER = logging.getLogger(__name__)
 
