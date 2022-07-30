@@ -46,16 +46,17 @@ class EmitterManager:
         async with self._lock:
             device_id = self._available_device_id_stack.pop()
             if device_id in self._emitters:
-                raise EmitterManagerError(
-                    f"Emitter with device_id {device_id} is already registered!"
-                )
-            if "address" in kwargs.keys():
-                if kwargs["address"] in self._unique_ids:
-                    raise EmitterManagerError(
-                        f"A device with address {kwargs['address']} was already"
-                        f" registered!"
-                    )
-                self._unique_ids.add(kwargs["address"])
+                # raise EmitterManagerError(
+                #     f"Emitter with device_id {device_id} is already registered!"
+                # )
+                return device_id
+            # if "address" in kwargs.keys():
+            #     if kwargs["address"] in self._unique_ids:
+            #         raise EmitterManagerError(
+            #             f"A device with address {kwargs['address']} was already"
+            #             f" registered!"
+            #         )
+            #     self._unique_ids.add(kwargs["address"])
             self._emitters[device_id] = emitter(device_id, self, **kwargs)
             return device_id
 

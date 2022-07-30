@@ -1,0 +1,50 @@
+.device-box {
+    ul {
+        margin: 0;
+        padding: 0;
+        li {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+    }
+    p {
+        margin: 0.25rem 0;
+        font-size: 0.85rem;
+    }
+    h1 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+    .characteristic {
+        padding: 0.75rem;
+        background-color: rgb(229, 229, 229);
+        p {
+            font-size: 0.9rem;
+        }
+        &:not(:last-child) {
+            border-bottom: 1px solid #ccc;
+        }
+    }
+    .property {
+        margin: 0.75rem 0;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        button {
+            text-align: left;
+            width: min-content;
+            white-space: nowrap;
+            border: none;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        div {
+            background-color: rgb(238, 238, 238);
+            padding: 0.5rem;
+        }
+    }
+    .accordion.level-1 {
+        margin-top: 0.5rem;
+    }
+}

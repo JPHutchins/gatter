@@ -1,0 +1,49 @@
+.accordion {
+    border: none;
+    .accordion-body.collapsed {
+        height: 0;
+        overflow: hidden;
+    }
+    .accordion-header {
+        cursor: pointer;
+        width: 100%;
+        text-align: left;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        position: relative;
+        &::before {
+            position: absolute;
+            border-style: solid;
+            border-width: 0.15rem 0.15rem 0 0;
+            content: '';
+            display: inline-block;
+            height: 0.45rem;
+            right: 0.75rem;
+            top: calc(50% - 0.45rem);
+            width: 0.45rem;
+            transform: rotate(135deg);
+        }
+        &.collapsed::before {
+            top: calc(50% - 0.34rem);
+            transform: rotate(45deg);
+        }
+        &.level-1 {
+            margin-top: 0.5rem;
+            background-color: black;
+            color: white;
+            font-size: 1.25rem;
+            font-weight: bold;
+            outline: 1px solid #ccc;
+        }
+        &.level-2 {
+            font-size: 1.1rem;
+            font-weight: bold;
+            outline: 1px solid #ccc;
+            background-color: rgb(217, 217, 217);
+            padding: 0.15rem 0.5rem;
+        }
+    }
+    &.level-2 {
+        outline: 1px solid #ccc;
+    }
+}
