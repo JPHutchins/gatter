@@ -1,0 +1,11 @@
+[run]
+omit = 
+    */tests/*
+
+[paths]
+source = 
+    gatterserver/
+
+[report]
+fail_under = 86
+show_missing = True

@@ -1,7 +1,5 @@
 """Test signal generators."""
 
-import asyncio
-
 import pytest
 
 from gatterserver import models

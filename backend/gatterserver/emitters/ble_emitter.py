@@ -58,9 +58,7 @@ class BLEEmitter(Emitter):
         await self.bc.get_services()
         await self._examine_gatt()
 
-    async def read_characteristic(
-        self, char_specifier: Union[int, str, UUID]
-    ) -> bytearray:
+    async def read_characteristic(self, char_specifier: Union[int, str, UUID]) -> bytearray:
         return await self.bc.read_gatt_char(char_specifier)
 
     async def read_descriptor(self, handle: int, **kwargs) -> bytearray:
@@ -79,9 +77,7 @@ class BLEEmitter(Emitter):
             LOGGER.exception("GATT write failed for device %d", self.device_id)
         return False
 
-    async def write_descriptor(
-        self, handle: int, data: Union[bytes, bytearray, memoryview]
-    ):
+    async def write_descriptor(self, handle: int, data: Union[bytes, bytearray, memoryview]):
         return await self.bc.write_gatt_descriptor(handle, data)
 
     async def start_notify(self, stream_id: models.StreamId, **kwargs):
@@ -94,7 +90,7 @@ class BLEEmitter(Emitter):
         if self._streams[stream_id].stop is None:
             LOGGER.warning("Stream isn't running?")
             return
-        await self._streams[stream_id].stop()
+        await self._streams[stream_id].stop()  # type: ignore
         self._streams[stream_id].stop = None
 
     async def _maybe_register_stream(
@@ -109,9 +105,7 @@ class BLEEmitter(Emitter):
             return None
 
         # create a stream ID for this stream
-        stream_id = models.StreamId(
-            deviceId=self.device_id, channelId=self._next_channel_id
-        )
+        stream_id = models.StreamId(deviceId=self.device_id, channelId=self._next_channel_id)
         self._next_channel_id += 1
 
         # register the stream to get the callback that will stream data
@@ -119,8 +113,8 @@ class BLEEmitter(Emitter):
 
         # make a closure of send and characteristic_handle
         def _make_start(
-            send: Awaitable, characteristic_handle: int
-        ) -> Callable[..., Awaitable]:
+            send: Callable[[bytes], Awaitable], characteristic_handle: int
+        ) -> Callable[[], Awaitable]:
             async def start(
                 _: Optional[Callable[[bytes], Awaitable]] = None, **kwargs
             ) -> Callable[[], Awaitable]:
@@ -138,9 +132,7 @@ class BLEEmitter(Emitter):
 
             return start
 
-        self._streams[stream_id] = Stream(
-            start=_make_start(send, characteristic.handle), send=send
-        )
+        self._streams[stream_id] = Stream(start=_make_start(send, characteristic.handle), send=send)
 
         return stream_id
 

@@ -3,8 +3,8 @@
 import logging
 import sys
 
-from fastapi import APIRouter, WebSocket
-from fastapi.encoders import jsonable_encoder
+from fastapi import APIRouter, WebSocket  # type: ignore
+from fastapi.encoders import jsonable_encoder  # type: ignore
 
 from gatterserver import models
 from gatterserver.ble.discovery import BLEDiscoveryManager
@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 
 router = APIRouter()
 
-discovery_manager: BLEDiscoveryManager = None
+discovery_manager: BLEDiscoveryManager = None  # type: ignore
 
 
 def register(discovery_manager: BLEDiscoveryManager):
@@ -38,7 +38,7 @@ async def blediscover_endpoint(websocket: WebSocket):
 
 @router.post("/api/ws/bledevice")
 async def bledevice_endpoint(command: models.BLEDeviceMessage):
-    emitter_manager
+    ...
 
 
 @router.post("/api/ble/discovery")

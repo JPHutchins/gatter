@@ -1,8 +1,5 @@
 """Test emitters."""
 
-import asyncio
-from typing import Callable
-
 import pytest
 
 from gatterserver import models
@@ -72,9 +69,9 @@ async def test_emitter_manager_starts_stops_stream():
     r: Ramp = em._emitters[d]
 
     s = em._emitters[d].get_stream(models.StreamId(deviceId=0, channelId=0))
-    assert s.task_handle == None
-    assert s.send == None
-    assert s.start != None
+    assert s.task_handle is None
+    assert s.send is None
+    assert s.start is not None
 
     TOP_OF_RAMP = 10
     r.configure(0, TOP_OF_RAMP, 1, 0.001)
@@ -110,15 +107,15 @@ async def test_emitter_manager_starts_stops_stream():
 
     await em.stop_stream(r_stream_id)
 
-    assert s.task_handle == None
-    assert s.send != None  # Since a stream was started once, the send cb is valid
-    assert s.start != None
+    assert s.task_handle is None
+    assert s.send is not None  # Since a stream was started once, the send cb is valid
+    assert s.start is not None
 
     # Test resuming stopped stream
     r._val = r._min  # ramp would otherwise resume where it left off
     await em.start_stream(r_stream_id)
     await test_ramp()
     await em.stop_stream(r_stream_id)
-    assert s.task_handle == None
-    assert s.send != None
-    assert s.start != None
+    assert s.task_handle is None
+    assert s.send is not None
+    assert s.start is not None

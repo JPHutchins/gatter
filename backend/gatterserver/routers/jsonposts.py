@@ -2,12 +2,14 @@
 
 import logging
 import sys
+from typing import Optional
 
 from fastapi import APIRouter, Response, status
 from fastapi.encoders import jsonable_encoder
 
 from gatterserver import models
 from gatterserver.emitters.ble_emitter import BLEEmitter
+from gatterserver.emitters.emitter import Emitter
 from gatterserver.emitters.emittermanager import EmitterManager, EmitterManagerError
 from gatterserver.emitters.signalgen import Ramp
 
@@ -15,7 +17,7 @@ LOGGER = logging.getLogger(__name__)
 
 router = APIRouter()
 
-emitter_manager: EmitterManager = None
+emitter_manager: EmitterManager = None  # type: ignore
 
 
 def register(emitter_manager: EmitterManager):
@@ -29,7 +31,7 @@ async def add(add_command: models.AddCommand, response: Response):
     if add_command.emitterType == models.RAMP_EMITTER_TYPE:
         emitter_class = Ramp
     elif add_command.emitterType == models.BLE_EMITTER_TYPE:
-        emitter_class = BLEEmitter
+        emitter_class = BLEEmitter  # type: ignore
         kwargs = {"address": add_command.address}
     elif add_command.emitterType == models.SERIAL_EMITTER_TYPE:
         response.status_code = status.HTTP_400_BAD_REQUEST
@@ -49,7 +51,7 @@ async def add(add_command: models.AddCommand, response: Response):
 
 @router.post(models.API_CMD_DEL_PATH)
 async def remove(delete_command: models.DeleteCommand):
-    if delete_command.deviceId != None:
+    if delete_command.deviceId is not None:
         await emitter_manager.unregister(delete_command.deviceId)
         return delete_command
     return {"msg": "error"}
@@ -67,7 +69,7 @@ async def start_stream(start_command: models.StartStreamCommand, response: Respo
 
 @router.post("/api/ble/connect")
 async def connect(connect: models.Connect, response: Response):
-    device: BLEEmitter = emitter_manager[connect.deviceId]
+    device: Optional[Emitter] = emitter_manager[connect.deviceId]
 
     if device is None:
         response.status_code = status.HTTP_400_BAD_REQUEST
@@ -90,7 +92,7 @@ async def connect(connect: models.Connect, response: Response):
 async def read_characteristic(
     read_characteristic: models.ReadCharacteristic, response: Response
 ) -> Response:
-    device: BLEEmitter = emitter_manager[read_characteristic.deviceId]
+    device = emitter_manager[read_characteristic.deviceId]
 
     if device is None:
         response.status_code = status.HTTP_400_BAD_REQUEST
@@ -100,6 +102,4 @@ async def read_characteristic(
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"error": f"Device {read_characteristic.deviceId} is not a BLE device"}
 
-    return Response(
-        content=bytes(await device.read_characteristic(read_characteristic.handle))
-    )
+    return Response(content=bytes(await device.read_characteristic(read_characteristic.handle)))

@@ -42,14 +42,14 @@ class BLEDiscoveryManager:
 
     async def start_discovery(self):
         """Start BLE discovery task."""
-        if self._task_handle != None:
+        if self._task_handle is not None:
             LOGGER.warning("Discovery already running.")
             return
         self._task_handle = asyncio.create_task(self._scanner.start())
 
     async def stop_discovery(self):
         """Stop BLE discovery task."""
-        if self._task_handle == None:
+        if self._task_handle is None:
             LOGGER.warning("Discovery not running.")
             return
         await self._scanner.stop()

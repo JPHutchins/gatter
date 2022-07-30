@@ -1,8 +1,10 @@
 const { app, BrowserWindow, dialog } = require('electron');
 const isDev = require('electron-is-dev');
 const path = require('path');
-const { spawn } = require('child_process');
+const { exec } = require('node:child_process');
 const { fetch } = require('cross-fetch');
+
+const PYTHON_ALIAS = process.platform === "win32" ? "python" : "python3";
 
 function createWindow() {
     const mainWindow = new BrowserWindow({
@@ -10,7 +12,7 @@ function createWindow() {
         height: 600,
         show: false,
     });
-    const child = spawn(process.env.PYTHON_ALIAS, ['../backend/main.py']);
+    const child = exec(`poetry run ${PYTHON_ALIAS} main.py`, {cwd: "../backend"});
     child.stdout.on('data', (out) => {
         console.log(out.toString());
     });

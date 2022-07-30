@@ -3,7 +3,7 @@
 import asyncio
 
 import pytest
-from pydantic import ValidationError
+from pydantic import ValidationError  # type: ignore
 
 from gatterserver import models
 from gatterserver.streams import Stream, StreamManager, StreamPacket
@@ -18,9 +18,9 @@ def test_stream_type():
 
     s = Stream(start=lambda x: x)
     assert s
-    assert s.start != None
-    assert s.task_handle == None
-    assert s.send == None
+    assert s.start is not None
+    assert s.task_handle is None
+    assert s.send is None
 
 
 def test_stream_id_type():
@@ -71,8 +71,8 @@ def test_stream_packet_type():
 def test_stream_manager_constructor():
     sm = StreamManager()
     assert sm
-    assert sm._lock.locked() == False
-    assert not sm._semaphore.locked() == False
+    assert sm._lock.locked() is False
+    assert not sm._semaphore.locked() is False
     assert len(sm._pending_data) == 0
     assert len(sm._streams) == 0
 

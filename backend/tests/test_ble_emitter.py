@@ -1,14 +1,13 @@
 """Test the BLE Emitter class."""
 
 import inspect
-from typing import Any, Awaitable, Tuple
+from typing import Any, List, Tuple
 from unittest import mock
 from unittest.mock import AsyncMock, MagicMock, PropertyMock
 
 import pytest
+from black import Iterator
 from bleak import BleakClient
-from bleak.backends.characteristic import BleakGATTCharacteristic
-from bleak.exc import BleakError
 
 from gatterserver import models
 from gatterserver.emitters.ble_emitter import BLEEmitter
@@ -26,14 +25,14 @@ class MockBleakGATTCharacteristic:
         self.handle = 0
         self.uuid = ""
         self.description = ""
-        self.properties = []
-        self.descriptors = []
+        self.properties: List[str] = []
+        self.descriptors: List[str] = []
         self.get_descriptor = MagicMock()
         self.add_descriptor = MagicMock()
 
 
 @pytest.fixture
-def ble_emitter() -> Tuple[BLEEmitter, EmitterManager]:
+def ble_emitter() -> Iterator[Tuple[BLEEmitter, EmitterManager]]:
     em = EmitterManager()
     yield BLEEmitter(0, em, "the address string"), em
 
@@ -57,10 +56,10 @@ def test_constructor(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
     assert e.bc.address == "the address string"
 
     with pytest.raises(TypeError):
-        e = BLEEmitter(0, "the address string")
+        e = BLEEmitter(0, "the address string")  # type: ignore
 
     with pytest.raises(TypeError):
-        e = BLEEmitter(0, em, "the address string", "another arg")
+        e = BLEEmitter(0, em, "the address string", "another arg")  # type: ignore
 
 
 @pytest.mark.asyncio
@@ -70,7 +69,7 @@ async def test_connect_success(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
     # mock successful Bleak connect
     e._client.connect = AsyncMock(return_value=True)
 
-    e._examine_gatt = AsyncMock()
+    e._examine_gatt = AsyncMock()  # type: ignore
 
     assert e.connected is False
 
@@ -142,7 +141,7 @@ async def test_get_services(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
 
     # mock
     e._client.get_services = AsyncMock()
-    e._examine_gatt = AsyncMock()
+    e._examine_gatt = AsyncMock()  # type: ignore
     await e.get_services()
     e._client.get_services.assert_awaited_once()
     e._examine_gatt.assert_awaited_once()
@@ -236,12 +235,14 @@ async def test_start_notify(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
     c.properties = ["notify"]
 
     id = await e._maybe_register_stream(c)
+    assert id is not None
     await e.start_notify(id)
     e._client.start_notify.assert_awaited()
     assert 42 in e._client.start_notify.call_args_list[0].args
     assert inspect.iscoroutinefunction(e._streams[id].stop)
 
     id = await e._maybe_register_stream(c)
+    assert id is not None
     kwargs = {"keyword": "arguments"}
     await e.start_notify(id, **kwargs)
     e._client.start_notify.assert_awaited()
@@ -265,6 +266,7 @@ async def test_stop_notify(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
     c.properties = ["notify"]
 
     id = await e._maybe_register_stream(c)
+    assert id is not None
     await e.start_notify(id)
 
     await e.stop_notify(id)
