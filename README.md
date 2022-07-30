@@ -2,9 +2,7 @@
 
 ## Development Quick Start
 
-* Enable the development environment: `. ./envr.ps1`
-* Run tests: `tests`
-* Run app in development mode: `dev`
+* Run app in development mode: `npm run dev --prefix frontend`
 
 # Development Environment Setup
 
