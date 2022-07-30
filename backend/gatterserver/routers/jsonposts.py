@@ -66,23 +66,40 @@ async def start_stream(start_command: models.StartStreamCommand, response: Respo
 
 
 @router.post("/api/ble/connect")
-async def connect(connect: models.Connect):
+async def connect(connect: models.Connect, response: Response):
     device: BLEEmitter = emitter_manager[connect.deviceId]
-    if device == None:
+
+    if device is None:
+        response.status_code = status.HTTP_400_BAD_REQUEST
         return {"error": f"Could not get device {connect.deviceId}"}
 
+    if type(device) != BLEEmitter:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {"error": f"Device {connect.deviceId} is not a BLE device"}
+
     connected = await device.connect()
+
     if not connected:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {"error": f"Connection to device {connect.deviceId} failed"}
 
-    return jsonable_encoder(device.device_rep)
+    return jsonable_encoder(device.ble_device_message)
 
 
 @router.post("/api/ble/read/characteristic")
 async def read_characteristic(
-    read_characteristic: models.ReadCharacteristic,
+    read_characteristic: models.ReadCharacteristic, response: Response
 ) -> Response:
     device: BLEEmitter = emitter_manager[read_characteristic.deviceId]
+
+    if device is None:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {"error": f"Could not get device {read_characteristic.deviceId}"}
+
+    if type(device) != BLEEmitter:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {"error": f"Device {read_characteristic.deviceId} is not a BLE device"}
+
     return Response(
         content=bytes(await device.read_characteristic(read_characteristic.handle))
     )

@@ -8,11 +8,11 @@ from gatterserver.emitters.emittermanager import EmitterManager
 from gatterserver.routers import ble, jsonposts, tests, websockets
 
 discovery_manager = BLEDiscoveryManager()
-emitter_manger = EmitterManager()
+emitter_manager = EmitterManager()
 
 ble.register(discovery_manager)
-websockets.register(emitter_manger)
-jsonposts.register(emitter_manger)
+websockets.register(emitter_manager)
+jsonposts.register(emitter_manager)
 
 app = FastAPI()
 
