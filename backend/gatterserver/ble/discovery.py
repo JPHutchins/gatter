@@ -64,4 +64,7 @@ class BLEDiscoveryManager:
 
     def get_average_rssi(self, address):
         """Return the latest average RSSI for the device address."""
-        return mean(self._latest_rssis[address])
+        try:
+            return mean(self._latest_rssis[address])
+        except Exception:
+            return -255

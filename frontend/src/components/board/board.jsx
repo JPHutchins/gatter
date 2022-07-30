@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Box } from 'components';
-import { DiscoveredDevice } from 'components';
-
+import { useContext  } from 'use-context-selector';
+import { FunctionBox } from 'components';
+import { DiscoveredDevice, DeviceBox } from 'components';
+import { store } from 'store';
 const discoveredDevices = {};
 
 const ws2 = new WebSocket("ws://localhost:8000/api/ws/blediscovery");
@@ -10,6 +11,8 @@ const Board = () => {
     const [boxes, setBoxes] = useState([]);
     const [discoveryOn, setDiscoveryOn] = useState(false);
     const [devicesDisplay, setDevicesDisplay] = useState([]);
+    const globalState = useContext(store);
+    const { dispatch, state } = globalState;
     useEffect(() => {
         ws2.onmessage = async(message) => {
             const discoveredDevice = JSON.parse(message.data);
@@ -17,10 +20,11 @@ const Board = () => {
             const deviceList = Object.values(discoveredDevices);
             deviceList.sort((a, b) => b.rssiAverage - a.rssiAverage);
             setDevicesDisplay(deviceList);
+            dispatch({ type: 'SET_DISCOVERED_DEVICES', payload: deviceList });
         };
     }, [])
-
-
+    
+    const { addedDevices = {} } = state;
     const deleteBox = (id) => {
         setBoxes(boxes.filter((box) => box.id !== id));
     };
@@ -62,8 +66,12 @@ const Board = () => {
         <div id="board">
             <button onClick={addBox}>Add Box</button>
             <input type="checkbox" onChange={handleDiscoveryToggle} checked={discoveryOn}/>
+            {Object.values(addedDevices)?.map((device) => {
+                return <DeviceBox deviceId={device?.deviceId} key={device?.deviceId} device={device} />;
+            })}
+
             {boxes.map((box) => (
-                <Box key={box.id} deleteBox={() => deleteBox(box.id)} boxId={box.id} />
+                <FunctionBox key={box.id} deleteBox={() => deleteBox(box.id)} boxId={box.id} />
             ))}
             {devices}
         </div>

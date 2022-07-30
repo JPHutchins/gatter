@@ -43,6 +43,7 @@ class EmitterManager:
                         f"A device with address {kwargs['address']} was already" f" registered!"
                     )
                 self._unique_ids.add(kwargs["address"])
+
             self._emitters[device_id] = emitter(device_id, self, **kwargs)
             return device_id
 
