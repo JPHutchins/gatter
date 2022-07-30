@@ -12,6 +12,16 @@ pool:
 steps:
 
 - script: |
+    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+    export PATH=$PATH:$HOME/.poetry/bin
+    cd backend
+    poetry install --no-root
+  displayName: 'Install dependencies'
+
+- script: echo "##vso[task.prependpath]$HOME/.poetry/bin"
+  displayName: Add poetry to PATH
+
+- script: |
     cd backend
     poetry install
     poetry run black --check .
