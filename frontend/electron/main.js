@@ -1,10 +1,12 @@
 const { app, BrowserWindow, dialog } = require('electron');
 const isDev = require('electron-is-dev');
 const path = require('path');
-const { exec } = require('node:child_process');
+const { spawn } = require('node:child_process');
 const { fetch } = require('cross-fetch');
 
 const PYTHON_ALIAS = process.platform === "win32" ? "python" : "python3";
+const BACKEND_PATH = path.join(__dirname, '..', '..', 'backend');
+const TRUE_IF_WINDOWS = process.platform === 'win32';
 
 function createWindow() {
     const mainWindow = new BrowserWindow({
@@ -12,7 +14,7 @@ function createWindow() {
         height: 600,
         show: false,
     });
-    const child = exec(`poetry run ${PYTHON_ALIAS} main.py`, {cwd: "../backend"});
+    const child = spawn('poetry', ['run', PYTHON_ALIAS, 'main.py'], {cwd: BACKEND_PATH, shell: TRUE_IF_WINDOWS, detached: TRUE_IF_WINDOWS});
     child.stdout.on('data', (out) => {
         console.log(out.toString());
     });
@@ -42,9 +44,24 @@ function createWindow() {
 
     mainWindow.once('ready-to-show', () => mainWindow.show());
     mainWindow.on('closed', () => {
-        child.kill('SIGINT');
-        console.log('Backend closed.');
+        
     });
+
+    app.on('window-all-closed', function() {
+        // On OS X it is common for applications and their menu bar
+        // to stay active until the user quits explicitly with Cmd + Q
+        if (process.platform !== 'darwin') {
+            if (process.platform === 'win32') {
+                // console.log("Tree killing PID: ", child.pid);
+                // kill(child.pid, 'SIGTERM');
+                child.kill('SIGINT');
+            } else {
+                child.kill('SIGINT');
+            }
+            console.log('Backend closed.');
+            app.quit()
+        }
+    })
 }
 
 app.on('ready', createWindow);
