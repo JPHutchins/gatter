@@ -74,6 +74,12 @@ class BLEEmitter(Emitter):
                 return await self.bc.read_gatt_char(char_specifier)
             LOGGER.error("Unable to reconnected to %s", self._address)
             return bytearray([])
+        except BleakError as e:
+            if "F2" in str(e):
+                LOGGER.warning("%s is asleep?", self._address)
+                return bytearray([])
+            LOGGER.exception("BleakError while trying to read from %s", self._address)
+            return bytearray([])
 
     async def read_descriptor(self, handle: int, **kwargs) -> bytearray:
         return await self.bc.read_gatt_descriptor(handle, **kwargs)
