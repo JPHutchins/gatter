@@ -3,23 +3,45 @@ import { useContextSelector  } from 'use-context-selector';
 import { Box, Accordion } from 'components';
 import { store } from 'store';
 
-const read = async(deviceId, characteristic, setReadResponse) => {
-    const response = await fetch('http://localhost:8000/api/ble/read/characteristic', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            deviceId: deviceId,
-            handle: characteristic.handle
-        })
-    });
-    if (response.status === 200) {
-        const readResponse = await response.arrayBuffer();
-        const typedArray = new Uint8Array(readResponse);
-        const array = [...typedArray];
-        setReadResponse(`${array}`);
-    }
-    else {
-        console.error('Read failed.');
+const read = async(deviceId, characteristic, setReadResponse, property) => {
+    let response = null;
+
+    switch (property) {
+        case "read":
+            response = await fetch('http://localhost:8000/api/ble/read/characteristic', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    deviceId: deviceId,
+                    handle: characteristic.handle
+                })
+            });
+            if (response.status === 200) {
+                const readResponse = await response.arrayBuffer();
+                const typedArray = new Uint8Array(readResponse);
+                const array = [...typedArray];
+                setReadResponse(`${array}`);
+            }
+            else {
+                console.error('Read failed.');
+            }
+            break;
+
+        case "notify":
+            response = await fetch('http://localhost:8000/api/cmd/stream/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    streamId: characteristic.streamId
+                })
+            });
+            if (response.status === 200) {
+                console.log("Notify success!");
+            }
+            else {
+                console.error('Notify fail!');
+            }
+            break;
     }
 };
 
@@ -27,7 +49,7 @@ const Property = ({ property, characteristic, deviceId }) => {
     const [readResponse, setReadResponse] = useState('');
     return ( 
         <li className="property">
-            <button onClick={() => read(deviceId, characteristic, setReadResponse)}>{property}</button>
+            <button onClick={() => read(deviceId, characteristic, setReadResponse, property)}>{property}</button>
             <div>{readResponse}&nbsp;</div>
         </li>
     )
