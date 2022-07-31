@@ -20,7 +20,7 @@ const read = async(deviceId, characteristic, setReadResponse, property) => {
                 const readResponse = await response.arrayBuffer();
                 const buffer = new Uint8Array(readResponse);
                 const array = buffer.map((x) => x.toString(16));
-                setReadResponse(`${array.join(" ")}`);
+                setReadResponse(`${array.join(" ")}`);   
             }
             else {
                 console.error('Read failed.');
