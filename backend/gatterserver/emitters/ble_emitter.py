@@ -16,7 +16,7 @@ from gatterserver.streams import Stream
 
 LOGGER = logging.getLogger(__name__)
 
-DEFAULT_CONNECTION_TIMEOUT = 30.0
+DEFAULT_CONNECTION_TIMEOUT = 5.0
 
 
 class BLEEmitter(Emitter):
@@ -34,12 +34,18 @@ class BLEEmitter(Emitter):
         try:
             connected = await self.bc.connect(timeout=timeout)
         except (BleakError, TimeoutError):
+            LOGGER.exception("Exception raised while trying to connect to device.")
+            return False
+        except OSError:
+            LOGGER.warning("OSError while trying to connect.", exc_info=True)
+            self._client = BleakClient(self._address)
+            connected = await self.bc.connect(timeout=timeout)
+
+        if not connected:
+            LOGGER.error("Connection to %s failed.")
             return False
 
         LOGGER.info("Connected to %s", self._address)
-
-        if not connected:
-            return False
 
         await self._examine_gatt()
 
@@ -59,7 +65,15 @@ class BLEEmitter(Emitter):
         await self._examine_gatt()
 
     async def read_characteristic(self, char_specifier: Union[int, str, UUID]) -> bytearray:
-        return await self.bc.read_gatt_char(char_specifier)
+        try:
+            return await self.bc.read_gatt_char(char_specifier)
+        except OSError:
+            LOGGER.warning("OSError while trying to read from %s", self._address, exc_info=True)
+            if await self.connect():
+                LOGGER.warning("Able to reconnect to %s.", self._address)
+                return await self.bc.read_gatt_char(char_specifier)
+            LOGGER.error("Unable to reconnected to %s", self._address)
+            return bytearray([])
 
     async def read_descriptor(self, handle: int, **kwargs) -> bytearray:
         return await self.bc.read_gatt_descriptor(handle, **kwargs)
