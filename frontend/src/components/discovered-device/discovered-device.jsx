@@ -10,14 +10,13 @@ const DiscoveredDevice = ({ discoveredDevice }) => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                emitterType: "ble",
+                emitterType: 'ble',
                 address: discoveredDevice.address
             })
         });
         if (response.status === 200) {
             const addResponse = await response.json();
             dispatch({ type: 'ADD_DEVICE', payload: { ...addResponse, ...discoveredDevice } });
-            console.log('Device added!', state);
         }
         else {
             console.error('Device add failed.');

@@ -29,6 +29,13 @@ const StateProvider = ({ children }) => {
             case 'REMOVE_DEVICE':
                 const { [action.payload]: removedDevice, ...rest } = state.addedDevices;
                 return { ...state, addedDevices: rest };
+            case 'UPDATE_STREAM':
+                const streamId = (action.payload.deviceId << 8) | action.payload.channelId;
+                return { ...state, streams: {
+                    ...state.streams,
+                    [streamId]: action.payload
+                }
+            };
             case 'SET_DEVICE_INFO':
                 return { ...state, addedDevices: {
                     ...state.addedDevices,
