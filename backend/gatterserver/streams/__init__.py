@@ -13,6 +13,10 @@ from gatterserver import models
 LOGGER = logging.getLogger(__name__)
 
 
+class DuplicateStreamException(Exception):
+    ...
+
+
 class Stream(BaseModel):
     start: Callable[[Optional[Callable[[bytes], Awaitable]]], Awaitable]
     stop: Optional[Callable[[], Awaitable]] = None
@@ -60,7 +64,7 @@ class StreamManager:
         """Register a stream and return an awaitable used to queue packets."""
         async with self._lock:
             if stream_id in self._streams:
-                raise Exception(f"{stream_id} already added!")
+                raise DuplicateStreamException(f"{stream_id} already added!")
             self._streams[stream_id] = stream_id
 
         LOGGER.info(f"{stream_id} added.")
@@ -86,6 +90,7 @@ class StreamManager:
                 LOGGER.warning(f"{stream_id} cannot be removed because it does not exist.")
                 return
             del self._streams[stream_id]
+            LOGGER.debug("Removed %s", stream_id)
 
     async def receive(self) -> AsyncIterator[StreamPacket]:
         while True:

@@ -3,32 +3,56 @@ import { useContextSelector  } from 'use-context-selector';
 import { Box, Accordion } from 'components';
 import { store } from 'store';
 
-const read = async(deviceId, characteristic, setReadResponse) => {
-    const response = await fetch('http://localhost:8000/api/ble/read/characteristic', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            deviceId: deviceId,
-            handle: characteristic.handle
-        })
-    });
-    if (response.status === 200) {
-        const readResponse = await response.arrayBuffer();
-        const typedArray = new Uint8Array(readResponse);
-        const array = [...typedArray];
-        setReadResponse(`${array}`);
+const properties = {
+    read: async(deviceId, characteristic, setValue) => {
+        const response = await fetch('http://localhost:8000/api/ble/read/characteristic', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                deviceId: deviceId,
+                handle: characteristic.handle
+            })
+        });
+        if (response.status === 200) {
+            const readResponse = await response.arrayBuffer();
+            const buffer = new Uint8Array(readResponse);
+            const array = Array.from(buffer).map((x) => x.toString(16));
+            const string = array.join(' ');
+            setValue(string);
+        }
+        else {
+            console.error('Read failed.');
+        }
+    },
+    notify: async(deviceId, characteristic) => {
+        const response = await fetch('http://localhost:8000/api/cmd/stream/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                streamId: characteristic.streamId
+            })
+        });
+        if (response.status === 200) {
+            console.log('Notify success!');
+        }
+        else {
+            console.error('Notify fail!');
+        }
     }
-    else {
-        console.error('Read failed.');
-    }
-};
+}
 
 const Property = ({ property, characteristic, deviceId }) => {
-    const [readResponse, setReadResponse] = useState('');
+    const [value, setValue] = useState('');
+    const streamId = (characteristic?.streamId?.deviceId << 8) | characteristic?.streamId?.channelId;
+    const stream = useContextSelector(store, ({ state }) => state.streams?.[streamId]) ?? {};
+    const payload = stream.payload ? Array.from(stream.payload) : [];
+    const array = payload.map((x) => x.toString(16));
+    const notifyString = array.join(' ');
+    const action = properties[property];
     return ( 
         <li className="property">
-            <button onClick={() => read(deviceId, characteristic, setReadResponse)}>{property}</button>
-            <div>{readResponse}&nbsp;</div>
+            <button onClick={() => action(deviceId, characteristic, setValue)}>{property}</button>
+            <div>{value || notifyString}&nbsp;</div>
         </li>
     )
 };
@@ -79,8 +103,20 @@ const DeviceBox = ({ deviceId, device }) => {
         }
     };
 
-    const deleteBox = () => {
-        dispatch({ type: 'REMOVE_DEVICE', payload: deviceId });
+    const deleteBox = async () => {
+        const response = await fetch('http://localhost:8000/api/cmd/del', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                deviceId: deviceId,
+            })
+        });
+        if (response.status === 200) {
+            dispatch({ type: 'REMOVE_DEVICE', payload: deviceId });   
+        }
+        else {
+            console.error('Delete failed.');
+        }
     };
 
     return (

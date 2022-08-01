@@ -4,6 +4,7 @@ import logging
 import sys
 from typing import Optional
 
+from bleak import BleakError
 from fastapi import APIRouter, Response, status
 from fastapi.encoders import jsonable_encoder
 
@@ -50,10 +51,11 @@ async def add(add_command: models.AddCommand, response: Response):
 
 
 @router.post(models.API_CMD_DEL_PATH)
-async def remove(delete_command: models.DeleteCommand):
+async def remove(delete_command: models.DeleteCommand, response: Response):
     if delete_command.deviceId is not None:
         await emitter_manager.unregister(delete_command.deviceId)
         return delete_command
+    response.status_code = status.HTTP_400_BAD_REQUEST
     return {"msg": "error"}
 
 
@@ -89,9 +91,7 @@ async def connect(connect: models.Connect, response: Response):
 
 
 @router.post("/api/ble/read/characteristic")
-async def read_characteristic(
-    read_characteristic: models.ReadCharacteristic, response: Response
-) -> Response:
+async def read_characteristic(read_characteristic: models.ReadCharacteristic, response: Response):
     device = emitter_manager[read_characteristic.deviceId]
 
     if device is None:
@@ -102,4 +102,8 @@ async def read_characteristic(
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"error": f"Device {read_characteristic.deviceId} is not a BLE device"}
 
-    return Response(content=bytes(await device.read_characteristic(read_characteristic.handle)))
+    try:
+        return Response(content=bytes(await device.read_characteristic(read_characteristic.handle)))
+    except BleakError:
+        LOGGER.exception("Exception during read.")
+        return Response(content=bytes([]))

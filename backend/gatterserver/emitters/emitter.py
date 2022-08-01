@@ -18,6 +18,12 @@ class Emitter(ABC):
     def get_stream(self, stream_id: models.StreamId) -> Stream:
         return self._streams[stream_id]
 
+    async def connect(self, timeout: float = 0) -> bool:
+        return True
+
+    async def disconnect(self):
+        return
+
     @property
     def device_id(self) -> int:
         return self._device_id

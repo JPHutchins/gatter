@@ -16,7 +16,7 @@ from gatterserver.streams import Stream
 
 LOGGER = logging.getLogger(__name__)
 
-DEFAULT_CONNECTION_TIMEOUT = 30.0
+DEFAULT_CONNECTION_TIMEOUT = 5.0
 
 
 class BLEEmitter(Emitter):
@@ -31,15 +31,25 @@ class BLEEmitter(Emitter):
         self._next_channel_id = 0
 
     async def connect(self, timeout: float = DEFAULT_CONNECTION_TIMEOUT) -> bool:
+        if self.bc.is_connected:
+            await self._examine_gatt()
+            return True
+
         try:
             connected = await self.bc.connect(timeout=timeout)
         except (BleakError, TimeoutError):
+            LOGGER.exception("Exception raised while trying to connect to device.")
+            return False
+        except OSError:
+            LOGGER.warning("OSError while trying to connect.", exc_info=True)
+            self._client = BleakClient(self._address)
+            connected = await self.bc.connect(timeout=timeout)
+
+        if not connected:
+            LOGGER.error("Connection to %s failed.")
             return False
 
         LOGGER.info("Connected to %s", self._address)
-
-        if not connected:
-            return False
 
         await self._examine_gatt()
 
@@ -59,7 +69,21 @@ class BLEEmitter(Emitter):
         await self._examine_gatt()
 
     async def read_characteristic(self, char_specifier: Union[int, str, UUID]) -> bytearray:
-        return await self.bc.read_gatt_char(char_specifier)
+        try:
+            return await self.bc.read_gatt_char(char_specifier)
+        except OSError:
+            LOGGER.warning("OSError while trying to read from %s", self._address, exc_info=True)
+            if await self.connect():
+                LOGGER.warning("Able to reconnect to %s.", self._address)
+                return await self.bc.read_gatt_char(char_specifier)
+            LOGGER.error("Unable to reconnected to %s", self._address)
+            return bytearray([])
+        except BleakError as e:
+            if "F2" in str(e):
+                LOGGER.warning("%s is asleep?", self._address)
+                return bytearray([])
+            LOGGER.exception("BleakError while trying to read from %s", self._address)
+            return bytearray([])
 
     async def read_descriptor(self, handle: int, **kwargs) -> bytearray:
         return await self.bc.read_gatt_descriptor(handle, **kwargs)
@@ -141,9 +165,11 @@ class BLEEmitter(Emitter):
 
         # first remove all of the old streams
         for stream_id in self._streams.keys():
-            self._em.stream_manager.remove_stream(stream_id)
+            await self._em.stream_manager.remove_stream(stream_id)
         self._streams = {}
         self._next_channel_id = 0
+
+        self._ble_device_message = models.BLEDeviceMessage(deviceId=self.device_id)
 
         for service in self.bc.services:
             service_message = models.BLEServiceMessage(

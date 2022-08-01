@@ -3,28 +3,14 @@ import { useContext  } from 'use-context-selector';
 import { FunctionBox } from 'components';
 import { DiscoveredDevice, DeviceBox } from 'components';
 import { store } from 'store';
-const discoveredDevices = {};
-
-const ws2 = new WebSocket("ws://localhost:8000/api/ws/blediscovery");
 
 const Board = () => {
     const [boxes, setBoxes] = useState([]);
     const [discoveryOn, setDiscoveryOn] = useState(false);
-    const [devicesDisplay, setDevicesDisplay] = useState([]);
     const globalState = useContext(store);
     const { dispatch, state } = globalState;
-    useEffect(() => {
-        ws2.onmessage = async(message) => {
-            const discoveredDevice = JSON.parse(message.data);
-            discoveredDevices[discoveredDevice.address] = discoveredDevice;
-            const deviceList = Object.values(discoveredDevices);
-            deviceList.sort((a, b) => b.rssiAverage - a.rssiAverage);
-            setDevicesDisplay(deviceList);
-            dispatch({ type: 'SET_DISCOVERED_DEVICES', payload: deviceList });
-        };
-    }, [])
-    
-    const { addedDevices = {} } = state;
+    const { addedDevices = {}, discoveredDevices = {} } = state;
+    const deviceList = Object.values(discoveredDevices).sort((a, b) => b.rssiAverage - a.rssiAverage);
     const deleteBox = (id) => {
         setBoxes(boxes.filter((box) => box.id !== id));
     };
@@ -47,20 +33,11 @@ const Board = () => {
         else {
             console.error("Discovery request failed.")
         }
-    }
+    };
 
-    // const listDevices = () => {
-    //     const devices = [];
-    //     for (const [_, discoveredDevice] of Object.entries(discoveredDevices)) {
-    //         const device = <DiscoveredDevice discoveredDevice={discoveredDevice} key={discoveredDevice.address} />;
-    //         setDevices([...devices, device]);
-    //     }
-    //     return devices;
-    // }
-
-    const devices = devicesDisplay.map((device) => {
+    const devices = deviceList.map((device) => {
         return <DiscoveredDevice discoveredDevice={device} key={device.address} />;
-    })
+    });
 
     return (
         <div id="board">
