@@ -101,6 +101,7 @@ class EmitterManager:
                 )
 
         await self.stop_all_streams(device_id)
+        await self._emitters[device_id].disconnect()
 
         async with self._lock:
             for channel_id in range(len(self._emitters[device_id].streams)):

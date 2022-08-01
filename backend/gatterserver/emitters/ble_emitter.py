@@ -31,6 +31,10 @@ class BLEEmitter(Emitter):
         self._next_channel_id = 0
 
     async def connect(self, timeout: float = DEFAULT_CONNECTION_TIMEOUT) -> bool:
+        if self.bc.is_connected:
+            await self._examine_gatt()
+            return True
+
         try:
             connected = await self.bc.connect(timeout=timeout)
         except (BleakError, TimeoutError):
@@ -161,9 +165,11 @@ class BLEEmitter(Emitter):
 
         # first remove all of the old streams
         for stream_id in self._streams.keys():
-            self._em.stream_manager.remove_stream(stream_id)
+            await self._em.stream_manager.remove_stream(stream_id)
         self._streams = {}
         self._next_channel_id = 0
+
+        self._ble_device_message = models.BLEDeviceMessage(deviceId=self.device_id)
 
         for service in self.bc.services:
             service_message = models.BLEServiceMessage(

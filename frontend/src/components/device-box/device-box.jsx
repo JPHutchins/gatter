@@ -103,8 +103,20 @@ const DeviceBox = ({ deviceId, device }) => {
         }
     };
 
-    const deleteBox = () => {
-        dispatch({ type: 'REMOVE_DEVICE', payload: deviceId });
+    const deleteBox = async () => {
+        const response = await fetch('http://localhost:8000/api/cmd/del', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                deviceId: deviceId,
+            })
+        });
+        if (response.status === 200) {
+            dispatch({ type: 'REMOVE_DEVICE', payload: deviceId });   
+        }
+        else {
+            console.error('Delete failed.');
+        }
     };
 
     return (
