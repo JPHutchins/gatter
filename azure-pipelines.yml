@@ -1,5 +1,5 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Pipeline for Gatter repository
+#
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
@@ -7,22 +7,21 @@ trigger:
 - develop
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
 
 steps:
-
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.10'
 
-- script: |
-    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+- bash: |
+    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
     export PATH=$PATH:$HOME/.poetry/bin
     cd backend
     poetry install --no-root
   displayName: 'Install dependencies'
 
-- script: echo "##vso[task.prependpath]$HOME/.poetry/bin"
+- bash: echo "##vso[task.prependpath]$HOME/.poetry/bin"
   displayName: Add poetry to PATH
 
 - script: |
