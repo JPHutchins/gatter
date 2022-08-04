@@ -33,6 +33,7 @@ steps:
 - script : |
     cd backend
     poetry install --no-root
+  displayName: 'Install python dependencies'
 
 - script: |
     cd backend
