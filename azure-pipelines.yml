@@ -14,14 +14,14 @@ steps:
   inputs:
     versionSpec: '3.10'
 
-- bash: |
+- script: |
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
     export PATH=$PATH:$HOME/.poetry/bin
     cd backend
     poetry install --no-root
   displayName: 'Install dependencies'
 
-- bash: echo "##vso[task.prependpath]$HOME/.poetry/bin"
+- script: echo "##vso[task.prependpath]$HOME/.poetry/bin"
   displayName: Add poetry to PATH
 
 - script: |
