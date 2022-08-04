@@ -30,4 +30,19 @@ steps:
     poetry install
     poetry run black --check .
     poetry run isort --check-only .
-  displayName: 'Formatting'
+  displayName: 'Check formatting'
+
+- script: |
+    cd backend
+    poetry install
+    poetry run flake8 .
+    poetry run mypy .
+  displayName: 'Check linting'
+
+- script: |
+    cd backend
+    poetry install
+    poetry run coverage erase
+    poetry run coverage run -m pytest
+    poetry run coverage report
+  displayName: 'Tests and coverage'
