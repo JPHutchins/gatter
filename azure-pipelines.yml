@@ -16,15 +16,31 @@ steps:
 
 - script: |
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
-    cd backend
-    ~/.poetry/bin/poetry install --no-root
   displayName: 'Install dependencies'
+
+# Linux & MacOS
+- script: |
+    echo "##vso[task.prependpath]$HOME/.poetry/bin"
+    cd backend
+    poetry install --no-root
+  condition: or( eq( variables['Agent.OS'], 'Linux' ), eq( variables['Agent.OS'], 'Darwin' ) )
+  displayName: 'Add poetry to path on Linux/Mac'
+
+# Windows
+- script: |
+    Write-Host "##vso[task.prependpath]$HOME/.poetry/bin"
+    cd backend
+    poetry install --no-root
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  displayName: 'Add poetry to path on Windows'
+
+
 
 - script: |
     cd backend
-    ~/.poetry/bin/poetry install
-    ~/.poetry/bin/poetry run black --check .
-    ~/.poetry/bin/poetry run isort --check-only .
+    poetry install
+    poetry run black --check .
+    poetry run isort --check-only .
   displayName: 'Check formatting'
 
 - script: |
