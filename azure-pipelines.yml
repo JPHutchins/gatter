@@ -16,19 +16,15 @@ steps:
 
 - script: |
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
-    export PATH=$PATH:$HOME/.poetry/bin
     cd backend
-    poetry install --no-root
+    ~/.poetry/bin/poetry install --no-root
   displayName: 'Install dependencies'
-
-- script: echo "##vso[task.prependpath]$HOME/.poetry/bin"
-  displayName: Add poetry to PATH
 
 - script: |
     cd backend
-    poetry install
-    poetry run black --check .
-    poetry run isort --check-only .
+    ~/.poetry/bin/poetry install
+    ~/.poetry/bin/poetry run black --check .
+    ~/.poetry/bin/poetry run isort --check-only .
   displayName: 'Check formatting'
 
 - script: |
