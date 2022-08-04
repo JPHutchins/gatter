@@ -21,18 +21,18 @@ steps:
 # Linux & MacOS
 - script: |
     echo "##vso[task.prependpath]$HOME/.poetry/bin"
-    cd backend
-    poetry install --no-root
   condition: or( eq( variables['Agent.OS'], 'Linux' ), eq( variables['Agent.OS'], 'Darwin' ) )
   displayName: 'Add poetry to path on Linux/Mac'
 
 # Windows
 - pwsh: |
     Write-Host "##vso[task.prependpath]$HOME/.poetry/bin"
-    cd backend
-    poetry install --no-root
   condition: eq( variables['Agent.OS'], 'Windows_NT' )
   displayName: 'Add poetry to path on Windows'
+
+- script : |
+    cd backend
+    poetry install --no-root
 
 - script: |
     cd backend
