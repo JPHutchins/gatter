@@ -27,7 +27,7 @@ steps:
   displayName: 'Add poetry to path on Linux/Mac'
 
 # Windows
-- script: |
+- pwsh: |
     Write-Host "##vso[task.prependpath]$HOME/.poetry/bin"
     cd backend
     poetry install --no-root
