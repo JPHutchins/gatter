@@ -16,6 +16,15 @@
         margin: 0;
         font-size: 1.5rem;
     }
+    .format-radios {
+        position: relative;
+        width: auto;
+        margin: 0 auto;
+        float: right;
+    }
+    input[type="radio"] {
+        opacity: 100;
+    }
     .characteristic {
         padding: 0.75rem;
         background-color: rgb(229, 229, 229);
@@ -43,6 +52,9 @@
             background-color: rgb(238, 238, 238);
             padding: 0.5rem;
         }
+    }
+    .property-text-box {
+        font-family: monospace;
     }
     .accordion.level-1 {
         margin-top: 0.5rem;
