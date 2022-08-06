@@ -7,5 +7,5 @@ source =
     gatterserver/
 
 [report]
-fail_under = 83
+fail_under = 80
 show_missing = True
