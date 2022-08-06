@@ -25,8 +25,8 @@ class BLEDiscoveryManager:
         )
         self._last_discovery: BLEDevice = None
         self._event = asyncio.Event()
-        self._scanner = BleakScanner(detection_callback=self._make_on_discovery())
         self._task_handle: asyncio.Task = None
+        self._scanner = None
 
     def _make_on_discovery(self) -> Callable[[BLEDevice, AdvertisementData], None]:
         """Return the on_discovery callback."""
@@ -42,6 +42,9 @@ class BLEDiscoveryManager:
 
     async def start_discovery(self):
         """Start BLE discovery task."""
+        if self._scanner is None:
+            self._scanner = BleakScanner(detection_callback=self._make_on_discovery())
+
         if self._task_handle is not None:
             LOGGER.warning("Discovery already running.")
             return
@@ -49,6 +52,9 @@ class BLEDiscoveryManager:
 
     async def stop_discovery(self):
         """Stop BLE discovery task."""
+        if self._scanner is None:
+            return
+
         if self._task_handle is None:
             LOGGER.warning("Discovery not running.")
             return

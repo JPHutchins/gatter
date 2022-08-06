@@ -1,32 +1,29 @@
 """Test BLE Discovery."""
 
 import asyncio
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
 
-from gatterserver.api import app
 from gatterserver.ble.discovery import BLEDiscoveryManager
 
-client = TestClient(app)
 
-
-def test_ble_discovery_manager_constructor():
+@pytest.mark.asyncio
+async def test_ble_discovery_manager_constructor():
     bm = BLEDiscoveryManager()
     assert bm
     assert bm._discovered == {}
     assert bm._last_discovery is None
     assert type(bm._event) == asyncio.Event
     assert bm._event.is_set() is False
-    assert bm._scanner is not None
+    assert bm._scanner is None
     assert bm._task_handle is None
 
 
 @pytest.mark.asyncio
-async def test_ble_discovery_manager_starts_scanning():
+@patch("gatterserver.ble.discovery.BleakScanner", return_value=AsyncMock())
+async def test_ble_discovery_manager_starts_scanning(scanner: AsyncMock):
     bm = BLEDiscoveryManager()
-    bm._scanner.start = AsyncMock()
 
     await bm.start_discovery()
     bm._scanner.start.assert_called_once()
@@ -35,10 +32,9 @@ async def test_ble_discovery_manager_starts_scanning():
 
 
 @pytest.mark.asyncio
-async def test_ble_discovery_manager_stops_scanning():
+@patch("gatterserver.ble.discovery.BleakScanner", return_value=AsyncMock())
+async def test_ble_discovery_manager_stops_scanning(scanner: AsyncMock):
     bm = BLEDiscoveryManager()
-    bm._scanner.start = AsyncMock()
-    bm._scanner.stop = AsyncMock()
 
     await bm.start_discovery()
     bm._scanner.start.assert_called_once()
