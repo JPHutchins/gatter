@@ -3,7 +3,7 @@
 import inspect
 from typing import Tuple
 from unittest import mock
-from unittest.mock import AsyncMock, MagicMock, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 from black import Iterator
@@ -117,6 +117,21 @@ async def test_connect_fail(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
     await e.connect(0.1)
     e._client.connect.assert_awaited_once_with(timeout=0.1)
     assert e.connected is False
+
+
+@pytest.mark.asyncio
+async def test_connect_handles_OSError(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
+    e, _ = ble_emitter
+
+    # mock Bleak raises OSError
+    e._client.connect = AsyncMock(return_value=False, side_effect=OSError)
+
+    with patch("gatterserver.emitters.ble_emitter.BleakClient") as bc:
+        instance = bc.return_value
+        instance.connect = AsyncMock(return_value=False)
+        await e.connect(0.1)
+        bc.assert_called_once()
+        instance.connect.assert_awaited_once()
 
 
 @pytest.mark.asyncio
