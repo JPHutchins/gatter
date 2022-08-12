@@ -96,6 +96,13 @@ async def test_connect_success(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
         m.return_value = True
         assert e.connected is True
 
+        # reconnect just inspects gatt again
+        e._examine_gatt.reset_mock()
+        e._client.connect.reset_mock()
+        assert await e.connect(0.1) is True
+        e._client.connect.assert_not_awaited()
+        e._examine_gatt.assert_awaited_once()
+
 
 @pytest.mark.asyncio
 async def test_connect_fail(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
