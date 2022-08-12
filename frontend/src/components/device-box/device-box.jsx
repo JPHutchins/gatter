@@ -37,51 +37,44 @@ const properties = {
             console.error('Notify fail!');
         }
     }
-}
+};
+
+const formatters = {
+    hex: (payload) => payload.map((byte) => byte.toString(16).padStart(2, '0').toUpperCase()).join(' '),
+    dec: (payload) => payload.join(', '),
+    str: (payload) => String.fromCharCode(...payload),
+};
+
+const ParserRadio = ({ id, value, handleChange, checked }) => (
+    <>
+        <input type="radio" id={`${value}${id}`} name={`parser${id}`} value={value} onChange={handleChange} checked={checked} />
+        <label htmlFor={`${value}${id}`}>{value}</label>
+    </>
+);
 
 const Property = ({ property, characteristic, deviceId }) => {
     const [value, setValue] = useState(new Uint8Array([]));
-    const [parser, setParser] = useState("hex");
-
+    const [selectedFormatter, setSelectedFormatter] = useState('hex');
     const streamId = (characteristic?.streamId?.deviceId << 8) | characteristic?.streamId?.channelId;
     const stream = useContextSelector(store, ({ state }) => state.streams?.[streamId]) ?? {};
-
     const payload = stream.payload ? Array.from(stream.payload) : Array.from(value);
     const action = properties[property];
-
-    let parsed = '';
-    switch (parser) {
-        case "hex":
-            parsed = payload.map((x) => x < 0x10 ? "0" + x.toString(16) : x.toString(16)).join(' ');
-            break;
-        case "dec":
-            parsed = payload.join(', ');
-            break;
-        case "str":
-            parsed = String.fromCharCode(...payload);
-            break;
-        default:
-            throw Error(`Bad value for parse: ${parser}`);
-    }
-
+    const formatter = formatters[selectedFormatter];
+    const formatted = formatter(payload);
     const id = property + characteristic.uuid + deviceId.toString(10);
+    const handleChange = (event) => setSelectedFormatter(event.target.value);
 
     return ( 
         <li className="property">
-            <button onClick={() => action(deviceId, characteristic, setValue)}>{property}</button>
-            
-            <div className="format-radios">
-                <input type="radio" id={"hex" + id} name={"parser" + id} value="hex" onChange={() => setParser("hex")} checked={parser === "hex"} />
-                <label for={"hex" + id}>hex</label>
-
-                <input type="radio" id={"dec" + id} name={"parser" + id} value="dec" onChange={() => setParser("dec")}/>
-                <label for={"dec" + id}>dec</label>
-
-                <input type="radio" id={"str" + id} name={"parser" + id} value="str" onChange={() => setParser("str")}/>
-                <label for={"str" + id}>str</label>
+            <div className="controls">
+                <button onClick={() => action(deviceId, characteristic, setValue)}>{property}</button>
+                <div className="parser-radio">
+                    {['hex', 'dec', 'str'].map((formatter) => (
+                        <ParserRadio key={formatter} id={id} value={formatter} handleChange={handleChange} checked={selectedFormatter === formatter} />
+                    ))}
+                </div>
             </div>
-            
-            <div className="property-text-box">{parsed}&nbsp;</div>
+            <div className="property-text-box">{formatted}&nbsp;</div>
         </li>
     )
 };
