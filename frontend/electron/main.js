@@ -14,7 +14,7 @@ function createWindow() {
         height: 600,
         show: false,
     });
-    const child = spawn('poetry', ['run', PYTHON_ALIAS, 'main.py'], {cwd: BACKEND_PATH, shell: TRUE_IF_WINDOWS, detached: TRUE_IF_WINDOWS});
+    const child = spawn('poetry', ['run', PYTHON_ALIAS, '-m', 'gatterserver'], {cwd: BACKEND_PATH, shell: TRUE_IF_WINDOWS, detached: TRUE_IF_WINDOWS});
     child.stdout.on('data', (out) => {
         console.log(out.toString());
     });
