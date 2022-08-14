@@ -17,6 +17,18 @@ LOG_FILE = "logs/current.log"
 PREVIOUS_LOG_FILE = "logs/previous.log"
 LOG_FORMAT_STRING = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
+if os.path.exists(LOG_FILE):
+    # this is an error condition - the log file should have already been moved at program exit
+    shutil.copy(LOG_FILE, PREVIOUS_LOG_FILE)
+
+
+def on_exit():
+    file_handler.close()
+    shutil.move(LOG_FILE, f"logs/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log")
+
+
+atexit.register(on_exit)
+
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.DEBUG)
 
@@ -35,19 +47,6 @@ LOGGER.addHandler(console_handler)
 LOGGER.addHandler(file_handler)
 
 LOGGER.critical("Program start.")
-
-if os.path.exists(LOG_FILE):
-    # this is an error condition - the log file should have already been moved at program exit
-    LOGGER.error("Log file was not renamed after last program exit.")
-    shutil.copy(LOG_FILE, PREVIOUS_LOG_FILE)
-
-
-def on_exit():
-    file_handler.close()
-    shutil.move(LOG_FILE, f"logs/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log")
-
-
-atexit.register(on_exit)
 
 config = uvicorn.Config(app, host="127.0.0.1", port=8000, log_level="info", loop="asyncio")
 server = uvicorn.Server(config=config)
