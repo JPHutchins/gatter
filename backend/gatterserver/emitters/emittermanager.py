@@ -104,8 +104,7 @@ class EmitterManager:
         await self._emitters[device_id].disconnect()
 
         async with self._lock:
-            for channel_id in range(len(self._emitters[device_id].streams)):
-                stream_id = models.StreamId(deviceId=device_id, channelId=channel_id)
+            for stream_id in self._emitters[device_id].streams.keys():
                 await self.stream_manager.remove_stream(stream_id)
 
             if address := getattr(self._emitters[device_id], "address", None):
