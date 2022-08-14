@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from collections import defaultdict
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Iterator, List, Optional, Type
 
 from gatterserver import models
 from gatterserver.emitters.emitter import Emitter
@@ -135,5 +135,13 @@ class EmitterManager:
     def stream_manager(self) -> StreamManager:
         return self._stream_manager
 
+    @property
+    def device_ids(self) -> List[int]:
+        return list(self._emitters.keys())
+
     def __getitem__(self, item: Any) -> Optional[Emitter]:
         return self._emitters.get(item)
+
+    def __iter__(self) -> Iterator[Emitter]:
+        for emitter in self._emitters.values():
+            yield emitter

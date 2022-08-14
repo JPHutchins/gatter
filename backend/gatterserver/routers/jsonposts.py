@@ -1,5 +1,6 @@
 """Define the JSON POST routes."""
 
+import asyncio
 import logging
 import sys
 from typing import Optional
@@ -107,3 +108,19 @@ async def read_characteristic(read_characteristic: models.ReadCharacteristic, re
     except BleakError:
         LOGGER.exception("Exception during read.")
         return Response(content=bytes([]))
+
+
+@router.post("/api/dev/removeAll")
+async def remove_all(response: Response):
+    tasks = [emitter_manager.unregister(device_id) for device_id in emitter_manager.device_ids]
+
+    LOGGER.debug("Removing %d devices...", len(tasks))
+
+    exceptions = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for exception in exceptions:
+        LOGGER.warning(exception)
+
+    LOGGER.info("Removed %d devices.", len(tasks))
+
+    return Response()
