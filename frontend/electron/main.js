@@ -16,10 +16,10 @@ function createWindow() {
     });
     const child = spawn('poetry', ['run', PYTHON_ALIAS, '-m', 'gatterserver'], {cwd: BACKEND_PATH, shell: TRUE_IF_WINDOWS, detached: false});
     child.stdout.on('data', (out) => {
-        console.log(out.toString());
+        process.stdout.write(out.toString());
     });
     child.stderr.on('data', async(err) => {
-        console.log(err.toString());
+        process.stdout.write(err.toString());
         if (err.toString().includes('Application startup complete.')) {
             console.log('Server started.');
             const response = await fetch('http://localhost:8000/tests/hello_world');

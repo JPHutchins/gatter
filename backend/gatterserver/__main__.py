@@ -8,21 +8,24 @@ import shutil
 import sys
 from datetime import datetime
 
+from coloredlogs import ColoredFormatter
 import uvicorn  # type: ignore
 
 from gatterserver.api import app
 
 LOG_FILE = "logs/current.log"
 PREVIOUS_LOG_FILE = "logs/previous.log"
+LOG_FORMAT_STRING = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.DEBUG)
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter(LOG_FORMAT_STRING)
+color_formatter = ColoredFormatter(LOG_FORMAT_STRING)
 
 console_handler = logging.StreamHandler(stream=sys.stdout)
 console_handler.setLevel(logging.DEBUG)
-console_handler.setFormatter(formatter)
+console_handler.setFormatter(color_formatter)
 
 file_handler = logging.FileHandler("logs/current.log", mode="w+", encoding="utf-8")
 file_handler.setLevel(logging.DEBUG)
@@ -40,6 +43,7 @@ if os.path.exists(LOG_FILE):
 
 
 def on_exit():
+    file_handler.close()
     shutil.move(LOG_FILE, f"logs/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log")
 
 
@@ -68,7 +72,6 @@ async def main():
         await asyncio.gather(server_task, wait_for_stdin_task)
     except asyncio.CancelledError:
         LOGGER.info("Task canceled.")
-        pass
     finally:
         LOGGER.info("Shutting down the uvicorn server.")
         server.force_exit = True
@@ -77,6 +80,8 @@ async def main():
 
 try:
     _LOOP.run_until_complete(main())
+except EOFError:
+    LOGGER.info("Server exited without receiving message from Node.")
 except Exception:
     LOGGER.exception("Unhandled exception.")
 finally:
