@@ -8,8 +8,8 @@ import shutil
 import sys
 from datetime import datetime
 
-from coloredlogs import ColoredFormatter
 import uvicorn  # type: ignore
+from coloredlogs import ColoredFormatter  # type: ignore
 
 from gatterserver.api import app
 
