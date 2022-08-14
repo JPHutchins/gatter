@@ -14,7 +14,7 @@ function createWindow() {
         height: 600,
         show: false,
     });
-    const child = spawn('poetry', ['run', PYTHON_ALIAS, '-m', 'gatterserver'], {cwd: BACKEND_PATH, shell: TRUE_IF_WINDOWS, detached: TRUE_IF_WINDOWS});
+    const child = spawn('poetry', ['run', PYTHON_ALIAS, '-m', 'gatterserver'], {cwd: BACKEND_PATH, shell: TRUE_IF_WINDOWS, detached: false});
     child.stdout.on('data', (out) => {
         console.log(out.toString());
     });
@@ -54,8 +54,11 @@ function createWindow() {
             if (process.platform === 'win32') {
                 // console.log("Tree killing PID: ", child.pid);
                 // kill(child.pid, 'SIGTERM');
-                child.kill('SIGINT');
+                child.stdin.write('\n');
+                child.kill('SIGTERM');
+                
             } else {
+                child.stdin.write('\n');
                 child.kill('SIGINT');
             }
             console.log('Backend closed.');
