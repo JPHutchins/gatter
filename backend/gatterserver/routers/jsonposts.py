@@ -13,17 +13,20 @@ from gatterserver.emitters.ble_emitter import BLEEmitter
 from gatterserver.emitters.emitter import Emitter
 from gatterserver.emitters.emittermanager import EmitterManager, EmitterManagerError
 from gatterserver.emitters.signalgen import Ramp
+from gatterserver.loggers import AsyncStreamHandler
 
 LOGGER = logging.getLogger(__name__)
 
 router = APIRouter()
 
 emitter_manager: EmitterManager = None  # type: ignore
+gui_handler: AsyncStreamHandler = None  # type: ignore
 
 
-def register(emitter_manager: EmitterManager):
+def register(emitter_manager: EmitterManager, gui_handler: AsyncStreamHandler):
     this_module = sys.modules[__name__]
     this_module.__dict__["emitter_manager"] = emitter_manager
+    this_module.__dict__["gui_handler"] = gui_handler
 
 
 @router.post(models.API_CMD_ADD_PATH)
@@ -107,3 +110,9 @@ async def read_characteristic(read_characteristic: models.ReadCharacteristic, re
     except BleakError:
         LOGGER.exception("Exception during read.")
         return Response(content=bytes([]))
+
+
+@router.post("/api/dev/logStreamSettings")
+async def log_level(log_stream_settings: models.LogStreamSettings):
+    gui_handler.setLevel(log_stream_settings.level)
+    return log_stream_settings

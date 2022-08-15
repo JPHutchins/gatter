@@ -22,6 +22,7 @@ from gatterserver.models.const import (
 )
 from gatterserver.models.deletecommand import DeleteCommand
 from gatterserver.models.discoverycommand import DiscoveryCommand
+from gatterserver.models.logstreamsettings import LogStreamSettings
 from gatterserver.models.readcharacteristic import ReadCharacteristic
 from gatterserver.models.startstreamcommand import StartStreamCommand
 from gatterserver.models.streamid import StreamId
@@ -41,6 +42,7 @@ if __name__ == "__main__":
         (BLECharacteristicReference, ""),
         (BLEDescriptorMessage, ""),
         (BLEServiceMessage, ""),
+        (LogStreamSettings, ""),
     )
 
     with open(f"{os.path.dirname(os.path.realpath(__file__))}/README.md", "w+") as file:

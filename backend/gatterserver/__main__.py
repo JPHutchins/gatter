@@ -12,10 +12,10 @@ import uvicorn  # type: ignore
 from coloredlogs import ColoredFormatter  # type: ignore
 
 from gatterserver.api import app
+from gatterserver.loggers import LOG_FORMAT_STRING
 
 LOG_FILE = "logs/current.log"
 PREVIOUS_LOG_FILE = "logs/previous.log"
-LOG_FORMAT_STRING = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 if os.path.exists(LOG_FILE):
     # this is an error condition - the log file should have already been moved at program exit
