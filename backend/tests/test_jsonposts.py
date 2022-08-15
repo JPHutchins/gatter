@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from unittest.mock import AsyncMock, call, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -138,3 +139,25 @@ async def test_read_characteristic():
     assert response.content == b'{"error":"Device 0 is not a BLE device"}'
 
     # TODO: mock and patch
+
+
+@pytest.mark.asyncio
+@patch("gatterserver.emitters.emittermanager.EmitterManager.unregister", return_value=AsyncMock())
+async def test_remove_all(unregister: AsyncMock):
+    # add two devices that can will create streams automatically
+    command = {"emitterType": models.RAMP_EMITTER_TYPE}
+
+    response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
+    assert response.status_code == 200
+    id1 = response.json()["deviceId"]
+
+    response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
+    assert response.status_code == 200
+    id2 = response.json()["deviceId"]
+
+    # test removing them
+    response = client.post("api/dev/removeAll")
+    assert response.status_code == 200
+    unregister.call_args
+
+    unregister.assert_has_awaits([call(id1), call(id2)])
