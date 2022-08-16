@@ -4,6 +4,7 @@ import logging
 import sys
 
 from fastapi import APIRouter, WebSocket  # type: ignore
+from websockets.exceptions import ConnectionClosedOK
 
 from gatterserver.emitters.emittermanager import EmitterManager
 from gatterserver.loggers import AsyncStreamHandler
@@ -38,5 +39,7 @@ async def log_endpoint(websocket: WebSocket):
     try:
         async for log in gui_handler.receive():
             await websocket.send_text(log)
+    except ConnectionClosedOK:
+        LOGGER.info("LogStream WS closed with status code 1000 OK.")
     finally:
         logging.getLogger().removeHandler(gui_handler)
