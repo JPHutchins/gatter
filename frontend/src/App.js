@@ -10,7 +10,6 @@ function App() {
     useEffect(() => {
         const ws = new WebSocket('ws://localhost:8000/api/ws/streams');
         const ws2 = new WebSocket('ws://localhost:8000/api/ws/blediscovery');
-        const ws3 = new WebSocket('ws://localhost:8000/api/ws/log');
 
         ws.onmessage = async(e) => {
             const buffer = await e.data.arrayBuffer();
@@ -41,9 +40,6 @@ function App() {
             });
         };
 
-        ws3.onmessage = async (message) => {
-            console.log(message.data);
-        }
     }, []);
 
     return <Board />;
