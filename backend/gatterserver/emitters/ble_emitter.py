@@ -73,6 +73,7 @@ class BLEEmitter(Emitter):
             return await self.bc.read_gatt_char(char_specifier)
         except OSError:
             LOGGER.warning("OSError while trying to read from %s", self._address, exc_info=True)
+            self._client = BleakClient(self._address)
             if await self.connect():
                 LOGGER.warning("Able to reconnect to %s.", self._address)
                 return await self.bc.read_gatt_char(char_specifier)
