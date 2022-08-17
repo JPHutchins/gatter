@@ -1,9 +1,9 @@
 """Test the BLE Emitter class."""
 
 import inspect
-from typing import Any, List, Tuple
+from typing import Tuple
 from unittest import mock
-from unittest.mock import AsyncMock, MagicMock, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 from black import Iterator
@@ -16,19 +16,34 @@ from gatterserver.models.streamid import StreamId
 from gatterserver.streams import Stream
 
 
-class MockBleakGATTCharacteristic:
-    def __init__(self, obj: Any):
-        self.obj = obj
+class MockBleakGATTDescriptor:
+    def __init__(self, uuid="uuid", handle=42, description="description"):
+        self.uuid = uuid
+        self.handle = handle
+        self.description = description
+        self.characteristic_uuid = "characteristic_uuid"
+        self.characteristic_handle = 42
 
+
+class MockBleakGATTCharacteristic:
+    def __init__(self, properties, descriptors=(), handle=0):
         self.service_uuid = ""
         self.service_handle = 0
-        self.handle = 0
+        self.handle = handle
         self.uuid = ""
         self.description = ""
-        self.properties: List[str] = []
-        self.descriptors: List[str] = []
+        self.properties = properties
+        self.descriptors = descriptors
         self.get_descriptor = MagicMock()
         self.add_descriptor = MagicMock()
+
+
+class MockBleakGATTService:
+    def __init__(self, *args):
+        self.characteristics = args
+        self.uuid = "uuid"
+        self.handle = 42
+        self.description = "description"
 
 
 @pytest.fixture
@@ -81,6 +96,13 @@ async def test_connect_success(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
         m.return_value = True
         assert e.connected is True
 
+        # reconnect just inspects gatt again
+        e._examine_gatt.reset_mock()
+        e._client.connect.reset_mock()
+        assert await e.connect(0.1) is True
+        e._client.connect.assert_not_awaited()
+        e._examine_gatt.assert_awaited_once()
+
 
 @pytest.mark.asyncio
 async def test_connect_fail(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
@@ -95,6 +117,21 @@ async def test_connect_fail(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
     await e.connect(0.1)
     e._client.connect.assert_awaited_once_with(timeout=0.1)
     assert e.connected is False
+
+
+@pytest.mark.asyncio
+async def test_connect_handles_OSError(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
+    e, _ = ble_emitter
+
+    # mock Bleak raises OSError
+    e._client.connect = AsyncMock(return_value=False, side_effect=OSError)
+
+    with patch("gatterserver.emitters.ble_emitter.BleakClient") as bc:
+        instance = bc.return_value
+        instance.connect = AsyncMock(return_value=False)
+        await e.connect(0.1)
+        bc.assert_called_once()
+        instance.connect.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -271,3 +308,51 @@ async def test_stop_notify(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
 
     await e.stop_notify(id)
     e._client.stop_notify.assert_awaited_once_with(42)
+
+
+@pytest.mark.asyncio
+async def test_examine_gatt(ble_emitter: Tuple[BLEEmitter, EmitterManager]):
+    _, em = ble_emitter
+    id = await em.register_device(BLEEmitter, address="address")
+
+    e: BLEEmitter = em[id]  # type: ignore
+
+    # create some fake discovery results
+    e._client.services = (
+        MockBleakGATTService(
+            MockBleakGATTCharacteristic(("read",)),
+            MockBleakGATTCharacteristic(("notify",), handle=88),
+        ),
+        MockBleakGATTService(
+            MockBleakGATTCharacteristic(
+                ("indicate",), (MockBleakGATTDescriptor("one", 2, "three"),), handle=7
+            )
+        ),
+    )
+
+    await e._examine_gatt()
+
+    s1 = StreamId(deviceId=0, channelId=0)
+    s2 = StreamId(deviceId=0, channelId=1)
+
+    assert len(e.streams) == 2
+    assert e.streams[s1]  # the "notify" above
+    assert e.streams[s2]  # the "indicate" above
+
+    # assert that start gets called with the handle
+    e._client.start_notify = AsyncMock()
+
+    await em.start_stream(s1)
+    assert 88 in e._client.start_notify.call_args[0]
+
+    await em.start_stream(s2)
+    assert 7 in e._client.start_notify.call_args[0]
+
+    # assert stop gets called with the handle
+    e._client.stop_notify = AsyncMock()
+
+    await em.stop_stream(s1)
+    assert 88 in e._client.stop_notify.call_args[0]
+
+    await em.stop_stream(s2)
+    assert 7 in e._client.stop_notify.call_args[0]
