@@ -45,5 +45,5 @@
 From repo root: `npm run dev --prefix frontend`
 
 You could also run the frontend and backend separately in two terminals:
-* from `/backend`: `poetry run python3 main.py`
+* from `/backend`: `poetry run python3 -m gatterserver`
 * from `/frontend`: `npm start`

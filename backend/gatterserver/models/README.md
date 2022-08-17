@@ -719,3 +719,33 @@ The BLE service's characteristics.
 }
 ```
 
+## LogStreamSettings
+
+``
+
+Set the log level streamed from backend to GUI.
+
+```json
+{
+  "title": "LogStreamSettings",
+  "description": "Set the log level streamed from backend to GUI.",
+  "type": "object",
+  "properties": {
+    "level": {
+      "enum": [
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "level"
+  ],
+  "additionalProperties": false
+}
+```
+
