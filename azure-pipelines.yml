@@ -83,9 +83,11 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    sourceFolder: 'frontend/dist'
-    contents: 'gatter Setup 0.1.0.exe|gatter_0.1.0_amd64.snap|gatter-0.1.0.dmg'
-    targetFolder: '$(Build.ArtifactStagingDirectory)'
+    Contents: |
+      frontend\dist\gatter Setup 0.1.0.exe
+      frontend/dist/gatter_0.1.0_amd64.snap
+      frontend/dist/gatter-0.1.0.dmg'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: PublishBuildArtifacts@1
   inputs:
