@@ -86,7 +86,7 @@ steps:
     Contents: |
       frontend\dist\gatter Setup 0.1.0.exe
       frontend/dist/gatter_0.1.0_amd64.snap
-      frontend/dist/gatter-0.1.0.dmg'
+      frontend/dist/gatter-0.1.0.dmg
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: PublishBuildArtifacts@1
