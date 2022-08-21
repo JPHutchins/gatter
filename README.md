@@ -3,6 +3,7 @@
 ## Development Quick Start
 
 * Run app in development mode: `npm run dev --prefix frontend`
+* Build electron app: `npm run ebuild --prefix frontend`
 
 # Development Environment Setup
 
