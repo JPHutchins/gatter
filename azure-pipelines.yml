@@ -70,16 +70,21 @@ steps:
     poetry run coverage report
   displayName: 'Tests and coverage'
 
+- task: Npm@1
+  inputs:
+    command: install
+    workingDir: frontend
+  displayName: 'npm install'
+
 - script: |
     cd frontend
-    npm install
     npm run ebuild
   displayName: 'Build'
 
 - task: CopyFiles@2
   inputs:
     sourceFolder: 'frontend/dist'
-    contents: 'gatter Setup 0.1.0.exe'
+    contents: 'gatter Setup 0.1.0.exe|gatter_0.1.0_amd64.snap|gatter-0.1.0.dmg'
     targetFolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: PublishBuildArtifacts@1
