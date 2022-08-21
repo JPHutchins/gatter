@@ -71,7 +71,9 @@ steps:
   displayName: 'Tests and coverage'
 
 - script: |
-    npm run ebuild --prefix frontend
+    cd frontend
+    npm install
+    npm run ebuild
   displayName: 'Build'
 
 - task: CopyFiles@2
