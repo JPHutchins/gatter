@@ -4,3 +4,5 @@ envr-local
 # python
 .pytest_cache
 .mypy_cache
+
+dist/
