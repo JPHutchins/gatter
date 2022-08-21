@@ -12,6 +12,7 @@ bleak = "^0.15.0"
 fastapi = "^0.79.0"
 uvicorn = "^0.18.2"
 websockets = "^10.3"
+coloredlogs = "^15.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
@@ -23,7 +24,6 @@ flake8 = "^4.0.1"
 pytest-cov = "^3.0.0"
 tox = "^3.25.1"
 requests = "^2.28.1"
-coloredlogs = "^15.0.1"
 pyinstaller = "^5.3"
 
 [tool.black]
