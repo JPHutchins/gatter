@@ -7,14 +7,20 @@ const { fetch } = require('cross-fetch');
 const PYTHON_ALIAS = process.platform === "win32" ? "python" : "python3";
 const BACKEND_PATH = path.join(__dirname, '..', '..', 'backend');
 const TRUE_IF_WINDOWS = process.platform === 'win32';
+const BLERGBACKEND = TRUE_IF_WINDOWS ? "blergbackend.exe" : "blergbackend"
 
 function createWindow() {
     const mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
         show: false,
+        webPreferences: {
+            webSecurity: false
+        }
     });
-    const child = spawn('poetry', ['run', PYTHON_ALIAS, '-m', 'gatterserver'], {cwd: BACKEND_PATH, shell: TRUE_IF_WINDOWS, detached: false});
+    const child = isDev
+        ? spawn('poetry', ['run', PYTHON_ALIAS, '-m', 'gatterserver'], {cwd: BACKEND_PATH, shell: TRUE_IF_WINDOWS, detached: false})
+        : spawn(path.join(app.getAppPath(), '..', '..', 'resources', 'blergbackend', BLERGBACKEND));;
     child.stdout.on('data', (out) => {
         process.stdout.write(out.toString());
     });
@@ -38,7 +44,7 @@ function createWindow() {
         console.log(`child process exited with code ${code}`);
     });
 
-    const startURL = isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`;
+    const startURL = isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '..', 'build/index.html')}`;
 
     mainWindow.loadURL(startURL);
 
