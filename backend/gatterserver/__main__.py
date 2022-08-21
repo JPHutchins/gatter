@@ -14,8 +14,12 @@ from coloredlogs import ColoredFormatter  # type: ignore
 from gatterserver.api import app
 from gatterserver.loggers import LOG_FORMAT_STRING
 
-LOG_FILE = "logs/current.log"
-PREVIOUS_LOG_FILE = "logs/previous.log"
+LOG_PATH = "logs"
+LOG_FILE = os.path.join(LOG_PATH, "current.log")
+PREVIOUS_LOG_FILE = os.path.join(LOG_PATH, "previous.log")
+
+if not os.path.exists(LOG_PATH):
+    os.mkdir(LOG_PATH)
 
 if os.path.exists(LOG_FILE):
     # this is an error condition - the log file should have already been moved at program exit
