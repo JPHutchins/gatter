@@ -69,3 +69,27 @@ steps:
     poetry run coverage run -m pytest
     poetry run coverage report
   displayName: 'Tests and coverage'
+
+- task: Npm@1
+  inputs:
+    command: install
+    workingDir: frontend
+  displayName: 'npm install'
+
+- script: |
+    cd frontend
+    npm run ebuild
+  displayName: 'Build'
+
+- task: CopyFiles@2
+  inputs:
+    Contents: |
+      frontend\dist\gatter Setup 0.1.0.exe
+      frontend/dist/gatter_0.1.0_amd64.snap
+      frontend/dist/gatter-0.1.0.dmg
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: drop
