@@ -52,4 +52,18 @@ const StateProvider = ({ children }) => {
     return <Provider value={{ state, dispatch }}>{children}</Provider>;
 };
 
-export { store, StateProvider };
+export const removeAllDevices = async(dispatch) => {
+    const response = await fetch ('http://localhost:8000/api/dev/removeAll', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    if (response.status === 200) {
+        dispatch({ type: 'SET_ADDED_DEVICES', payload: {} });
+    } else {
+        console.error(response);
+    }
+}
+
+export { store, StateProvider, removeAllDevices };

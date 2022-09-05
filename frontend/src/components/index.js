@@ -6,4 +6,5 @@ export { default as Formula } from './formula/formula';
 export { default as Title } from './title/title';
 export { default as DiscoveredDevice } from './discovered-device/discovered-device';
 export { default as Accordion } from './accordion/accordion';
+export { default as DeveloperPanel } from './developer-panel/developer-panel';
 export { default as LogSettings } from './log-settings/log-settings';
