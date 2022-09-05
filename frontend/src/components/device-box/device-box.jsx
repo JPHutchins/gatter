@@ -118,7 +118,7 @@ const DeviceBox = ({ deviceId, device }) => {
         if (response.status === 200) {
             console.log('Device connected!');
             const connectResponse = await response.json();
-            dispatch({ type: 'SET_DEVICE_INFO', payload: { deviceId, ...connectResponse } });
+            dispatch({ type: 'SET_DEVICE_INFO', deviceId, device: { ...connectResponse } });
         }
         else {
             console.error('Device connect failed.');
@@ -134,7 +134,7 @@ const DeviceBox = ({ deviceId, device }) => {
             })
         });
         if (response.status === 200) {
-            dispatch({ type: 'REMOVE_DEVICE', payload: deviceId });   
+            dispatch({ type: 'REMOVE_DEVICE', deviceId });   
         }
         else {
             console.error('Delete failed.');

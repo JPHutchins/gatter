@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useContext  } from 'use-context-selector';
 import { FunctionBox } from 'components';
 import { DiscoveredDevice, DeviceBox, LogSettings } from 'components';
@@ -16,7 +16,14 @@ const Board = () => {
     };
 
     const addBox = () => {
-        setBoxes([...boxes, { id: Date.now() }]);
+        const boxId = Date.now();
+        dispatch({
+            type: 'ADD_BOX',
+            boxId,
+            previous: null,
+            next: null,
+        });
+        setBoxes([...boxes, { id: boxId }]);
     };
 
     const handleDiscoveryToggle = async() => {
@@ -29,8 +36,7 @@ const Board = () => {
         
         if (response.status === 200) {
             setDiscoveryOn(newDiscoveryState);
-        }
-        else {
+        } else {
             console.error("Discovery request failed.")
         }
     };
@@ -48,8 +54,14 @@ const Board = () => {
                 return <DeviceBox deviceId={device?.deviceId} key={device?.deviceId} device={device} />;
             })}
 
-            {boxes.map((box) => (
-                <FunctionBox key={box.id} deleteBox={() => deleteBox(box.id)} boxId={box.id} />
+            {boxes.map((box, i) => (
+                <FunctionBox
+                    key={box.id}
+                    deleteBox={() => deleteBox(box.id)}
+                    boxId={box.id}
+                    previousBox={boxes[i - 1]?.id}
+                    nextBox={boxes[i + 1]?.id}
+                />
             ))}
             {devices}
         </div>
