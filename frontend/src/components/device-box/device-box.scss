@@ -16,6 +16,39 @@
         margin: 0;
         font-size: 1.5rem;
     }
+    .controls {
+        display: flex;
+        justify-content: space-between;
+    }
+    .parser-radio {
+        input {
+            position: absolute;
+            clip: rect(0, 0, 0, 0);
+            height: 1px;
+            width: 1px;
+            border: 0;
+            overflow: hidden;
+        }
+        label {
+            border: 1px solid gray;
+            background-color: rgb(238, 238, 238);
+            color: rgba(0, 0, 0, 0.6);
+            font-size: 12px;
+            line-height: 1;
+            text-align: center;
+            padding: 2px 6px;
+            width: 25px;
+            display: inline-block;
+            border-bottom: none;
+            &:hover {
+                cursor: pointer;
+            }
+        }
+        input:checked + label {
+            background-color: #939393;
+            color: white;
+        }
+    }
     .characteristic {
         padding: 0.75rem;
         background-color: rgb(229, 229, 229);
@@ -39,10 +72,13 @@
             cursor: pointer;
             font-weight: 500;
         }
-        div {
+        .property-text-box {
             background-color: rgb(238, 238, 238);
             padding: 0.5rem;
         }
+    }
+    .property-text-box {
+        font-family: monospace;
     }
     .accordion.level-1 {
         margin-top: 0.5rem;

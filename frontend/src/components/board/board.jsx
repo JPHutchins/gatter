@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useContext  } from 'use-context-selector';
 import { FunctionBox } from 'components';
-import { DiscoveredDevice, DeviceBox } from 'components';
+import { DiscoveredDevice, DeviceBox, LogSettings } from 'components';
 import { store } from 'store';
 
 const Board = () => {
@@ -43,6 +43,7 @@ const Board = () => {
         <div id="board">
             <button onClick={addBox}>Add Box</button>
             <input type="checkbox" onChange={handleDiscoveryToggle} checked={discoveryOn}/>
+            <LogSettings/>
             {Object.values(addedDevices)?.map((device) => {
                 return <DeviceBox deviceId={device?.deviceId} key={device?.deviceId} device={device} />;
             })}

@@ -7,19 +7,25 @@ const { fetch } = require('cross-fetch');
 const PYTHON_ALIAS = process.platform === "win32" ? "python" : "python3";
 const BACKEND_PATH = path.join(__dirname, '..', '..', 'backend');
 const TRUE_IF_WINDOWS = process.platform === 'win32';
+const BLERGBACKEND = TRUE_IF_WINDOWS ? "blergbackend.exe" : "blergbackend"
 
 function createWindow() {
     const mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
         show: false,
+        webPreferences: {
+            webSecurity: false
+        }
     });
-    const child = spawn('poetry', ['run', PYTHON_ALIAS, 'main.py'], {cwd: BACKEND_PATH, shell: TRUE_IF_WINDOWS, detached: TRUE_IF_WINDOWS});
+    const child = isDev
+        ? spawn('poetry', ['run', PYTHON_ALIAS, '-m', 'gatterserver'], {cwd: BACKEND_PATH, shell: TRUE_IF_WINDOWS, detached: false})
+        : spawn(path.join(app.getAppPath(), '..', '..', 'resources', 'blergbackend', BLERGBACKEND));;
     child.stdout.on('data', (out) => {
-        console.log(out.toString());
+        process.stdout.write(out.toString());
     });
     child.stderr.on('data', async(err) => {
-        console.log(err.toString());
+        process.stdout.write(err.toString());
         if (err.toString().includes('Application startup complete.')) {
             console.log('Server started.');
             const response = await fetch('http://localhost:8000/tests/hello_world');
@@ -38,7 +44,7 @@ function createWindow() {
         console.log(`child process exited with code ${code}`);
     });
 
-    const startURL = isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`;
+    const startURL = isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '..', 'build/index.html')}`;
 
     mainWindow.loadURL(startURL);
 
@@ -54,8 +60,11 @@ function createWindow() {
             if (process.platform === 'win32') {
                 // console.log("Tree killing PID: ", child.pid);
                 // kill(child.pid, 'SIGTERM');
-                child.kill('SIGINT');
+                child.stdin.write('\n');
+                child.kill('SIGTERM');
+                
             } else {
+                child.stdin.write('\n');
                 child.kill('SIGINT');
             }
             console.log('Backend closed.');

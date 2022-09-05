@@ -4,12 +4,35 @@
 
 
 var codeInput = {
+        observedAttributes: [
+        "value", 
+        "placeholder", 
+        "lang", 
+        "template",
+        "onchange",
+        "onselectionchange",
+        "disabled",
+    ],
     usedTemplates: {
     },
     defaultTemplate: undefined,
     CodeInput: class extends HTMLElement { // Create code input element
         constructor() {
             super(); // Element
+        }
+
+        plugin_evt(id, args) {
+            // Run the event `id` in each plugin
+            for (let i in this.template.plugins) {
+                let plugin = this.template.plugins[i];
+                if (id in plugin) {
+                    if(args === undefined) {
+                        plugin[id](this);
+                    } else {
+                        plugin[id](this, ...args);
+                    }
+                }
+            }
         }
 
         /* Syntax-highlighting functions */
@@ -114,7 +137,7 @@ var codeInput = {
             let lang = this.getAttribute("lang");
             let placeholder = this.getAttribute("placeholder") || this.getAttribute("lang") || "";
             let value = this.value || this.innerHTML || "";
-    
+
             this.innerHTML = ""; // Clear Content
     
             /* Create Textarea */
@@ -148,8 +171,82 @@ var codeInput = {
             this.update(value, this);
         }
         static get observedAttributes() {
-            return ["value", "placeholder", "lang", "template"]; // Attributes to monitor
+            return codeInput.observedAttributes;
         }
+    
+        attributeChangedCallback(name, oldValue, newValue) {
+            if(this.isConnected) {
+                // This will sometimes be called before the element has been created, so trying to update an attribute causes an error.
+                // Thanks to Kevin Loughead for pointing this out.
+                
+                this.plugin_evt("attributeChanged", [name, oldValue, newValue]); // Plugin event
+                switch (name) {
+    
+                    case "value":
+    
+                        // Update code
+                        this.update(newValue);
+        
+                        break;
+        
+                    case "placeholder":
+                        this.querySelector("textarea").placeholder = newValue;
+                        break;
+        
+                    case "disabled":
+                        if (newValue == "true") {
+                            this.querySelector("textarea").setAttribute("disabled", "true");
+                        } else {
+                            this.querySelector("textarea").removeAttribute("disabled");
+                        }
+                        break;
+                    case "template":
+                        this.template = codeInput.usedTemplates[newValue || codeInput.defaultTemplate];
+                        if(this.template.preElementStyled) this.classList.add("code-input_pre-element-styled");
+                        else this.classList.remove("code-input_pre-element-styled");
+                        // Syntax Highlight
+                        this.update(this.value);
+
+                        break;
+    
+                    case "lang":
+                        let code = this.querySelector("pre code");
+                        let main_textarea = this.querySelector("textarea");
+                        
+                        // Case insensitive
+                        oldValue = oldValue.toLowerCase();
+                        newValue = newValue.toLowerCase();
+    
+                        // Remove old language class and add new
+                        console.log("code-input: Language: REMOVE", "language-" + oldValue);
+                        code.classList.remove("language-" + oldValue); // From CODE
+                        code.parentElement.classList.remove("language-" + oldValue); // From PRE
+                        code.classList.remove("language-none"); // Prism
+                        code.parentElement.classList.remove("language-none"); // Prism
+                        
+                        if(newValue != undefined && newValue != "") {
+                            code.classList.add("language-" + newValue);
+                            console.log("code-input: Language:ADD", "language-" + newValue);
+                        }
+                        
+                        if(main_textarea.placeholder == oldValue) main_textarea.placeholder = newValue;
+    
+                        this.update(this.value);
+
+                        break;
+
+                    // Events
+                    case "onchange":
+                        this.transfer_event("change", this.querySelector("textarea"), oldValue, newValue);
+                        break;
+                    case "onselectionchange":
+                        this.transfer_event("selectionchange", this.querySelector("textarea"), oldValue, newValue);
+                        break;
+                }
+            }
+            
+        }
+
 
         /* Value attribute */
         get value() {
@@ -164,6 +261,13 @@ var codeInput = {
         }
         set placeholder(val) {
             return this.setAttribute("placeholder", val);
+        }
+        /* Disabled attribute */
+        get disabled() {
+            return this.getAttribute("disabled");
+        }
+        set disabled(val) {
+            return this.setAttribute("disabled", val);
         }
     },
     registerTemplate: function(template_name, template) {

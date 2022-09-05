@@ -39,6 +39,7 @@ function App() {
                 payload: discoveredDevices,
             });
         };
+
     }, []);
 
     return <Board />;
