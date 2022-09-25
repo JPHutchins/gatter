@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { store } from 'store';
 import { useContext } from 'use-context-selector';
+import { Node } from 'components';
+import { NODE } from 'utils/constants';
 
 const Formula = ({ args, setOutput, boxId }) => {
     const identityFn = '(x) => x;';
@@ -45,12 +47,16 @@ const Formula = ({ args, setOutput, boxId }) => {
 
     return (
         <div className="formula">
+            <Node direction={NODE.INPUT} />
+
             <code-input lang="javascript" onChange={handleChange} id={`${boxId}-input`} placeholder={identityFn} value={formulaText} disabled={!editable} />
             <div className="buttons">
                 <button disabled={editable} onClick={enable}>Edit</button>
                 <button disabled={!editable} onClick={save}>Save</button>
                 <button disabled={editable} onClick={calculate}>Calculate</button>
             </div>
+
+            <Node direction={NODE.OUTPUT} />
         </div>
     );
 }

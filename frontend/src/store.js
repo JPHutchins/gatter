@@ -1,7 +1,7 @@
 import { createContext } from 'use-context-selector';
 import { useReducer } from 'react';
 
-const initialState = {};
+const initialState = { connections: [] };
 const store = createContext(initialState);
 const { Provider } = store;
 
@@ -63,7 +63,41 @@ const StateProvider = ({ children }) => {
                         ...state.boxes[action.boxId],
                         inputs: action.inputs,
                     }
-                }};
+                }}
+            case 'START_CURSOR_NODE_DRAG':
+                return { 
+                    ...state,
+                    selectedOutput: action.payload.start,
+                    connections: [ 
+                        ...state.connections,
+                        action.payload
+                    ]
+                }
+            case 'END_CURSOR_NODE_DRAG':
+                return { 
+                    ...state,
+                    selectedOutput: null,
+                    connections: [ 
+                        ...state.connections.filter(({start, end}) => (
+                            !((start === state.selectedOutput) && (end === `cursor-${state.selectedOutput}`))
+                        )),
+                    ]
+                }
+            case 'ADD_CONNECTION':
+                return { 
+                    ...state,
+                    connections: [ 
+                        ...state.connections,
+                        {start: state.selectedOutput, end: action.payload.end}
+                    ]
+                }
+            case 'REMOVE_CONNECTION':
+                return { 
+                    ...state,
+                    connections: state.connections.filter(({start, end}) => (
+                        !((start === action.payload) && (end === action.payload))
+                    ))
+                }
             default:
                 return state;
         }
