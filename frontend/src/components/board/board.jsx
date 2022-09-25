@@ -45,7 +45,7 @@ const Board = () => {
             key={`key-${start}-${end}`}
             start={start}
             end={end}
-            endAnchor={{position: "middle", offset: {x: offsetX, y: offsetY}}}
+            endAnchor={{ position: "middle", offset: { x: offsetX, y: offsetY } }}
         />
     ))
 

@@ -41,7 +41,8 @@ const CursorNode = ({ nodeId }) => {
             <div id={`cursor-node-${nodeId}`} className="cursor-node" ref={nodeRef}></div>
         </Draggable>
     );
-}
+};
+
 
 const Node = ({ direction }) => {
     const nodeId = useNextNodeId();
@@ -61,7 +62,8 @@ const Node = ({ direction }) => {
         if (direction === NODE.INPUT) {
             setValidHoverClassLabel(state?.selectedOutput !== null ? "valid-hover" : "")
         }
-    }
+    };
+
 
 
     const handleMouseDown = (e) => {
@@ -83,7 +85,8 @@ const Node = ({ direction }) => {
                 }
             })
         }
-    }
+    };
+
 
     const handleMouseUp = (e) => {
         if ((direction === NODE.INPUT) && (state?.selectedOutput !== null)) {
@@ -92,7 +95,8 @@ const Node = ({ direction }) => {
                 payload: { end: `node-${nodeId}` }
             })
         }
-    }
+    };
+
 
     return (
         <div>
@@ -107,7 +111,8 @@ const Node = ({ direction }) => {
                 {cursor}
             </div>
         </div>
-    )
+    );
+
 };
 
 export default Node;
