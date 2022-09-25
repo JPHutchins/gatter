@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useContextSelector  } from 'use-context-selector';
-import { Box, Accordion } from 'components';
+import { Box, Accordion, Node } from 'components';
 import { store } from 'store';
+import { NODE } from 'utils/constants';
 
 const properties = {
     read: async(deviceId, characteristic, setValue) => {
@@ -74,7 +75,17 @@ const Property = ({ property, characteristic, deviceId }) => {
                     ))}
                 </div>
             </div>
-            <div className="property-text-box">{formatted}&nbsp;</div>
+            <div className="ble-io-channel">
+                {property === "write" ? (
+                    <Node direction={NODE.INPUT} />
+                ) : (<div></div>)}
+
+                <div className="property-text-box">{formatted}&nbsp;</div>
+
+                {["read", "notify", "indicate"].includes(property) ? (
+                    <Node direction={NODE.OUTPUT} />
+                ) : (<div></div>)}
+            </div>
         </li>
     )
 };
@@ -134,7 +145,7 @@ const DeviceBox = ({ deviceId, device }) => {
             })
         });
         if (response.status === 200) {
-            dispatch({ type: 'REMOVE_DEVICE', payload: deviceId });   
+            dispatch({ type: 'REMOVE_DEVICE', deviceId: deviceId, deviceInfo: deviceInfo });   
         }
         else {
             console.error('Delete failed.');

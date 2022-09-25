@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 
+import { Node } from 'components';
+import { NODE } from 'utils/constants';
+
 const Formula = ({ args, setOutput, boxId }) => {
     const identityFn = '(x) => x;';
     const [formula, setFormula] = useState(identityFn);
@@ -35,12 +38,16 @@ const Formula = ({ args, setOutput, boxId }) => {
 
     return (
         <div className="formula">
+            <Node direction={NODE.INPUT} />
+
             <code-input lang="javascript" onBlur={handleChange} id={`${boxId}-input`} placeholder={identityFn} value={formula} disabled={!editable} />
             <div className="buttons">
                 <button onClick={enable}>Edit</button>
                 <button onClick={save}>Save</button>
                 <button onClick={calculate}>Calculate</button>
             </div>
+
+            <Node direction={NODE.OUTPUT} />
         </div>
     );
 }

@@ -63,6 +63,7 @@
         margin: 0.75rem 0;
         display: grid;
         grid-template-rows: auto 1fr;
+        position: relative;
         button {
             text-align: left;
             width: min-content;
@@ -82,5 +83,8 @@
     }
     .accordion.level-1 {
         margin-top: 0.5rem;
+    }
+    .ble-io-channel {
+        position: relative;
     }
 }

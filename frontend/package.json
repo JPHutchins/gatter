@@ -20,6 +20,7 @@
     "react-draggable": "^4.4.4",
     "react-scripts": "^5.0.0",
     "react-use": "^17.4.0",
+    "react-xarrows": "^2.0.2",
     "use-context-selector": "^1.4.1",
     "use-immer": "^0.7.0",
     "wait-on": "^6.0.1",
@@ -64,26 +65,26 @@
     ]
   },
   "devDependencies": {
-    "react-app-rewire-alias": "^1.1.7",
     "electron": "^17.1.0",
-    "electron-builder": "^22.14.13"
+    "electron-builder": "^22.14.13",
+    "react-app-rewire-alias": "^1.1.7"
   },
   "build": {
     "appId": "com.blerg.app",
     "extends": null,
     "extraResources": [
-        {
-            "from": "../backend/dist/blergbackend",
-            "to": "blergbackend",
-            "filter": [
-                "**/*"
-            ]
-        }
+      {
+        "from": "../backend/dist/blergbackend",
+        "to": "blergbackend",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "files": [
-        "build/**/*",
-        "node_modules/**/*",
-        "electron/main.js"
+      "build/**/*",
+      "node_modules/**/*",
+      "electron/main.js"
     ]
   }
 }

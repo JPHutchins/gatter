@@ -7,3 +7,4 @@ export { default as Title } from './title/title';
 export { default as DiscoveredDevice } from './discovered-device/discovered-device';
 export { default as Accordion } from './accordion/accordion';
 export { default as LogSettings } from './log-settings/log-settings';
+export { default as Node } from './node/node';

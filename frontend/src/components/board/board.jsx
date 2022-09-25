@@ -3,6 +3,7 @@ import { useContext  } from 'use-context-selector';
 import { FunctionBox } from 'components';
 import { DiscoveredDevice, DeviceBox, LogSettings } from 'components';
 import { store } from 'store';
+import Xarrow, { Xwrapper } from 'react-xarrows';
 
 const Board = () => {
     const [boxes, setBoxes] = useState([]);
@@ -35,23 +36,44 @@ const Board = () => {
         }
     };
 
-    const devices = deviceList.map((device) => {
-        return <DiscoveredDevice discoveredDevice={device} key={device.address} />;
-    });
+    const discoveredDeviceList = deviceList.map((device) => (
+        <DiscoveredDevice discoveredDevice={device} key={device.address} />
+    ));
+
+    const arrows = state.connections.map(({start, end, offsetX=0, offsetY=0}) => (
+        <Xarrow 
+            key={`key-${start}-${end}`}
+            start={start}
+            end={end}
+            endAnchor={{position: "middle", offset: {x: offsetX, y: offsetY}}}
+        />
+    ))
+
+    const handleMouseUp = (e) => {
+        if (state?.selectedOutput !== null) {
+            dispatch({type: 'END_CURSOR_NODE_DRAG'})
+        }
+    }
 
     return (
-        <div id="board">
+        <div id="board" onMouseUp={handleMouseUp}>
             <button onClick={addBox}>Add Box</button>
             <input type="checkbox" onChange={handleDiscoveryToggle} checked={discoveryOn}/>
             <LogSettings/>
-            {Object.values(addedDevices)?.map((device) => {
-                return <DeviceBox deviceId={device?.deviceId} key={device?.deviceId} device={device} />;
-            })}
+            
+            {discoveredDeviceList}
 
-            {boxes.map((box) => (
-                <FunctionBox key={box.id} deleteBox={() => deleteBox(box.id)} boxId={box.id} />
-            ))}
-            {devices}
+            <Xwrapper>
+                {boxes.map((box) => (
+                    <FunctionBox key={box.id} deleteBox={() => deleteBox(box.id)} boxId={box.id} />
+                ))}
+
+                {Object.values(addedDevices)?.map((device) => (
+                    <DeviceBox deviceId={device?.deviceId} key={device?.deviceId} device={device} />
+                ))}
+
+                {arrows}
+            </Xwrapper>
         </div>
     );
 }
