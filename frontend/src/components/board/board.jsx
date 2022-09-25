@@ -66,10 +66,7 @@ const Board = () => {
             <button onClick={addBox}>Add Box</button>
             <input type="checkbox" onChange={handleDiscoveryToggle} checked={discoveryOn}/>
             <LogSettings/>
-            {Object.values(addedDevices)?.map((device) => {
-                return <DeviceBox deviceId={device?.deviceId} key={device?.deviceId} device={device} />;
-            })}
-
+            {discoveredDeviceList}
             <Xwrapper>
                 {boxes.map((box, i) => (
                     <FunctionBox
@@ -80,11 +77,9 @@ const Board = () => {
                         nextBox={boxes[i + 1]?.id}
                     />
                 ))}
-
                 {Object.values(addedDevices)?.map((device) => (
                     <DeviceBox deviceId={device?.deviceId} key={device?.deviceId} device={device} />
                 ))}
-
                 {arrows}
             </Xwrapper>
         </div>
