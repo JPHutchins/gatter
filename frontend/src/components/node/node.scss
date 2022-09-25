@@ -1,0 +1,36 @@
+$node-diameter: 1.0rem;
+$node-radius: 0.5rem;
+
+.node {
+    position: absolute;
+    top: calc(50% - 0.5rem);
+    height: $node-diameter;
+    width: $node-diameter;
+    border-radius: 50%;
+    background-color: black;
+    display: grid;
+    place-items: center;
+    &.input {
+        left: -20px;
+    }
+    &.output {
+        right: -20px;
+    }
+    &.valid-hover {
+        transform: scale(1.5);
+    }
+    &.selected-output {
+        background-color: red;
+        transform: scale(1.5);
+    }
+    transition: all 100ms ease-in-out;
+}
+
+.cursor-node {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    &.react-draggable.react-draggable-dragging {
+        box-shadow: none; 
+    }
+}
