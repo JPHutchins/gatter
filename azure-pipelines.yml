@@ -33,13 +33,13 @@ steps:
 
 # Linux & MacOS
 - script: |
-    echo "##vso[task.prependpath]$HOME/.poetry/bin"
+    echo "##vso[task.prependpath]$HOME/.local/bin"
   condition: or( eq( variables['Agent.OS'], 'Linux' ), eq( variables['Agent.OS'], 'Darwin' ) )
   displayName: 'Add poetry to path on Linux/Mac'
 
 # Windows
 - pwsh: |
-    Write-Host "##vso[task.prependpath]$HOME/.poetry/bin"
+    Write-Host "##vso[task.prependpath]$HOME/AppData/Roaming/Python/Scripts"
   condition: eq( variables['Agent.OS'], 'Windows_NT' )
   displayName: 'Add poetry to path on Windows'
 
