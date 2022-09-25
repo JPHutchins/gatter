@@ -40,7 +40,7 @@ const Board = () => {
         <DiscoveredDevice discoveredDevice={device} key={device.address} />
     ));
 
-    const arrows = state.connections.map(({start, end, offsetX=0, offsetY=0}) => (
+    const arrows = state.connections.map(({ start, end, offsetX = 0, offsetY = 0 }) => (
         <Xarrow 
             key={`key-${start}-${end}`}
             start={start}
