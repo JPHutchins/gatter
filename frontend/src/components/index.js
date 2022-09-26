@@ -8,3 +8,4 @@ export { default as DiscoveredDevice } from './discovered-device/discovered-devi
 export { default as Accordion } from './accordion/accordion';
 export { default as LogSettings } from './log-settings/log-settings';
 export { default as Node } from './node/node';
+export { default as Arrows } from './arrows/arrows';

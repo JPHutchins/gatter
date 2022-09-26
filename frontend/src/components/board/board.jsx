@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useContext  } from 'use-context-selector';
-import { FunctionBox } from 'components';
+import { FunctionBox, Arrows } from 'components';
 import { DiscoveredDevice, DeviceBox, LogSettings } from 'components';
 import { store } from 'store';
-import Xarrow, { Xwrapper } from 'react-xarrows';
+import { Xwrapper } from 'react-xarrows';
 
 const Board = () => {
     const [boxes, setBoxes] = useState([]);
@@ -46,33 +46,6 @@ const Board = () => {
         <DiscoveredDevice discoveredDevice={device} key={device.address} />
     ));
 
-    const connectionArrows = state.connections.map(({ start, end, offsetX = 0, offsetY = 0 }) => (
-        <Xarrow 
-            key={`key-${start}-${end}`}
-            start={start}
-            end={end}
-            endAnchor={{ position: 'middle', offset: { x: offsetX, y: offsetY } }}
-            divContainerProps={{ className: 'arrow' }}
-        />
-    ));
-
-    const getCursorArrow = () => {
-        if (!state.currentCursorNodeArrow) return null;
-        const { start, end, offsetX = 0, offsetY = 0 } =  state.currentCursorNodeArrow;
-
-        return (
-            <Xarrow 
-                key={`key-${start}-${end}`}
-                start={start}
-                end={end}
-                endAnchor={{ position: 'middle', offset: { x: offsetX, y: offsetY } }}
-                divContainerProps={{ className: 'arrow' }}
-            />
-        );
-    };
-
-    const cursorArrow = getCursorArrow();
-
     const handleMouseUp = (e) => {
         if (state?.selectedOutput !== null) {
             dispatch({type: 'END_CURSOR_NODE_DRAG'})
@@ -102,8 +75,7 @@ const Board = () => {
                         device={device}
                     />
                 ))}
-                {connectionArrows}
-                {cursorArrow}
+                <Arrows />
             </Xwrapper>
         </div>
     );

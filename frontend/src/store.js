@@ -7,7 +7,6 @@ const { Provider } = store;
 
 const StateProvider = ({ children }) => {
     const [state, dispatch] = useReducer((state, action) => {
-        console.log(state, action);
         switch (action.type) {
             case 'SET_DISCOVERED_DEVICES':
                 return { ...state, discoveredDevices: {
