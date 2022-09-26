@@ -38,7 +38,7 @@ const Board = () => {
         if (response.status === 200) {
             setDiscoveryOn(newDiscoveryState);
         } else {
-            console.error("Discovery request failed.")
+            console.error('Discovery request failed.')
         }
     };
 
@@ -46,20 +46,38 @@ const Board = () => {
         <DiscoveredDevice discoveredDevice={device} key={device.address} />
     ));
 
-    const arrows = state.connections.map(({ start, end, offsetX = 0, offsetY = 0 }) => (
+    const connectionArrows = state.connections.map(({ start, end, offsetX = 0, offsetY = 0 }) => (
         <Xarrow 
             key={`key-${start}-${end}`}
             start={start}
             end={end}
-            endAnchor={{ position: "middle", offset: { x: offsetX, y: offsetY } }}
+            endAnchor={{ position: 'middle', offset: { x: offsetX, y: offsetY } }}
+            divContainerProps={{ className: 'arrow' }}
         />
-    ))
+    ));
+
+    const getCursorArrow = () => {
+        if (!state.currentCursorNodeArrow) return null;
+        const { start, end, offsetX = 0, offsetY = 0 } =  state.currentCursorNodeArrow;
+
+        return (
+            <Xarrow 
+                key={`key-${start}-${end}`}
+                start={start}
+                end={end}
+                endAnchor={{ position: 'middle', offset: { x: offsetX, y: offsetY } }}
+                divContainerProps={{ className: 'arrow' }}
+            />
+        );
+    };
+
+    const cursorArrow = getCursorArrow();
 
     const handleMouseUp = (e) => {
         if (state?.selectedOutput !== null) {
             dispatch({type: 'END_CURSOR_NODE_DRAG'})
         }
-    }
+    };
 
     return (
         <div id="board" onMouseUp={handleMouseUp}>
@@ -78,12 +96,17 @@ const Board = () => {
                     />
                 ))}
                 {Object.values(addedDevices)?.map((device) => (
-                    <DeviceBox deviceId={device?.deviceId} key={device?.deviceId} device={device} />
+                    <DeviceBox
+                        deviceId={device?.deviceId}
+                        key={device?.deviceId}
+                        device={device}
+                    />
                 ))}
-                {arrows}
+                {connectionArrows}
+                {cursorArrow}
             </Xwrapper>
         </div>
     );
-}
+};
 
 export default Board;

@@ -1,12 +1,13 @@
 import { createContext } from 'use-context-selector';
 import { useReducer } from 'react';
 
-const initialState = { connections: [] };
+const initialState = { connections: [], currentCursorNodeArrow: null };
 const store = createContext(initialState);
 const { Provider } = store;
 
 const StateProvider = ({ children }) => {
     const [state, dispatch] = useReducer((state, action) => {
+        console.log(state, action);
         switch (action.type) {
             case 'SET_DISCOVERED_DEVICES':
                 return { ...state, discoveredDevices: {
@@ -68,21 +69,14 @@ const StateProvider = ({ children }) => {
                 return { 
                     ...state,
                     selectedOutput: action.payload.start,
-                    connections: [ 
-                        ...state.connections,
-                        action.payload
-                    ]
-                }
+                    currentCursorNodeArrow: action.payload
+                };
             case 'END_CURSOR_NODE_DRAG':
                 return { 
                     ...state,
                     selectedOutput: null,
-                    connections: [ 
-                        ...state.connections.filter(({start, end}) => (
-                            !((start === state.selectedOutput) && (end === `cursor-${state.selectedOutput}`))
-                        )),
-                    ]
-                }
+                    currentCursorNodeArrow: null,
+                };
             case 'ADD_CONNECTION':
                 return { 
                     ...state,
@@ -90,7 +84,7 @@ const StateProvider = ({ children }) => {
                         ...state.connections,
                         {start: state.selectedOutput, end: action.payload.end}
                     ]
-                }
+                };
             case 'REMOVE_CONNECTION':
                 return { 
                     ...state,
