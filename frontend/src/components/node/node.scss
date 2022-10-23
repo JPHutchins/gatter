@@ -9,6 +9,10 @@ $cursor-shift-hack: -100px;
     width: $node-diameter;
     display: grid;
     place-items: center;
+    color: white;
+    font-size: 0.8rem;
+    text-align: center;
+
     &.input {
         left: -20px;
     }

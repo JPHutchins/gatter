@@ -81,7 +81,11 @@ const StateProvider = ({ children }) => {
                     ...state,
                     connections: [ 
                         ...state.connections,
-                        {start: state.selectedOutput, end: action.payload.end}
+                        {
+                            start: state.selectedOutput,
+                            end: action.payload.end,
+                            setInputs: action.payload.setInputs,
+                        }
                     ]
                 };
             case 'REMOVE_CONNECTION':

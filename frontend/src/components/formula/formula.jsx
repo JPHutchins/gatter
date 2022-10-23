@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { store } from 'store';
 import { useContext } from 'use-context-selector';
 
-const Formula = ({ args, setOutput, boxId }) => {
+const Formula = ({ args, setOutput, boxId, inputSetter = () => {} }) => {
     const identityFn = '(x) => x;';
     const [formulaText, setFormulaText] = useState(identityFn);
     const [editable, setEditable] = useState(false);
@@ -28,10 +28,14 @@ const Formula = ({ args, setOutput, boxId }) => {
     };
 
     useEffect(() => {
+        setFormulaText(identityFn);
         if (!args) return null;
         const func = createFunction();
-        setOutput(func()(args));
-    }, []);
+        const output = func()(args);
+        setOutput(output);
+        console.log('inputSetter', inputSetter);
+        inputSetter(output);
+    }, [args]);
 
     const handleChange = (e) => {
         setFormulaText(e.target.value);
@@ -40,12 +44,14 @@ const Formula = ({ args, setOutput, boxId }) => {
     const calculate = () => {
         if (!args) return null;
         const func = createFunction();
-        setOutput(func()(args));
+        const output = func()(args);
+        setOutput(output);
+        inputSetter(output);
     };
 
     return (
         <div className="formula">
-            <code-input lang="javascript" onChange={handleChange} id={`${boxId}-input`} placeholder={identityFn} value={formulaText} disabled={!editable} />
+            <code-input lang="javascript" onBlur={handleChange} id={`${boxId}-input`} value={formulaText} placeholder={identityFn} disabled={!editable} />
             <div className="buttons">
                 <button disabled={editable} onClick={enable}>Edit</button>
                 <button disabled={!editable} onClick={save}>Save</button>

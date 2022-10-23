@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
 import { store } from 'store';
 import { useXarrow } from 'react-xarrows';
@@ -55,12 +55,12 @@ const CursorNode = ({ nodeId, handleMouseDown }) => {
     );
 };
 
-const InputNode = ({ nodeId, selectedOutput, dispatch, className }) => {
+const InputNode = ({ nodeId, selectedOutput, dispatch, className, setInputs }) => {
     const handleMouseUp = (e) => {
         if (selectedOutput !== null) {
             dispatch({
                 type: 'ADD_CONNECTION',
-                payload: { end: `${nodeId}` },
+                payload: { end: `${nodeId}`, setInputs },
             });
         }
     };
@@ -70,7 +70,7 @@ const InputNode = ({ nodeId, selectedOutput, dispatch, className }) => {
             className={className}
             onMouseUp={handleMouseUp}
             id={`${nodeId}`}
-        />
+        >{'>'}</div>
     );
 };
 
@@ -97,15 +97,19 @@ const OutputNode = ({ nodeId, dispatch, className }) => {
 
     return (
         <>
-            <div className={className} id={`${nodeId}`} />
+            <div className={className} id={`${nodeId}`}>{'>'}</div>
             <CursorNode nodeId={nodeId} handleMouseDown={handleMouseDown} />
         </>
     );
 };
 
-const Node = ({ direction }) => {
+const Node = ({ direction, setNodeId, setInputs }) => {
     const [validHoverClassLabel, setValidHoverClassLabel] = useState('');
-    const nodeId = useNextNodeId();
+    const nodeIdRef = useRef(useNextNodeId());    
+    useEffect(() => {
+        setNodeId(nodeIdRef.current);
+    }, []);
+
     const globalState = useContext(store);
     const { dispatch, state } = globalState;
     const { selectedOutput } = state;
@@ -117,7 +121,7 @@ const Node = ({ direction }) => {
         setValidHoverClassLabel(isValidHover ? 'valid-hover' : '');
     };
 
-    const selectedOutputClassLabel = nodeId === selectedOutput ? 'selected-output' : '';
+    const selectedOutputClassLabel = nodeIdRef.current === selectedOutput ? 'selected-output' : '';
     const className = `node ${direction} ${selectedOutputClassLabel} ${validHoverClassLabel}`;
     const Component = direction === NODE.INPUT ? InputNode : OutputNode;
 
@@ -129,9 +133,10 @@ const Node = ({ direction }) => {
         >
             <Component
                 dispatch={dispatch}
-                nodeId={nodeId}
+                nodeId={nodeIdRef.current}
                 selectedOutput={selectedOutput}
                 className={className}
+                setInputs={setInputs}
             />
         </div>
     );
