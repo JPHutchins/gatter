@@ -1,0 +1,92 @@
+.byte-parser {
+    height: 400px;
+    width: 600px;
+    border-style: solid;
+    border-color: red;
+    .start {
+        background-color: rgb(213, 216, 44);
+    }
+    .end {
+        background-color: pink;
+    }
+    .middle {
+        background-color: lightgray;
+    }
+    .empty {
+        opacity: 0;
+    }
+}
+
+td {
+    border: 2px solid rgb(182, 182, 182);
+    padding: 4px 4px;
+    max-height: 15px;
+    height: 15px;
+    font-family: 'Fira Code';
+    font-size: small;
+    user-select: none;
+    &.byte-index {
+        border: none;
+        font-size: x-small;
+    }
+    &.grouped {
+        border-left: none;
+        border-right: none;
+        border-top: 2px solid rgb(27, 27, 27);
+        border-bottom: 2px solid rgb(27, 27, 27);
+    }
+    &.grouped-left-boundary {
+        border-left: 2px solid rgb(27, 27, 27);
+        border-right: none;
+        border-top: 2px solid rgb(27, 27, 27);
+        border-bottom: 2px solid rgb(27, 27, 27);
+    }
+    &.grouped-right-boundary {
+        border-left: none;
+        border-right: 2px solid rgb(27, 27, 27);
+        border-top: 2px solid rgb(27, 27, 27);
+        border-bottom: 2px solid rgb(27, 27, 27);
+    }
+    &.grouped-single-square {
+        border-left: 2px solid rgb(27, 27, 27);
+        border-right: 2px solid rgb(27, 27, 27);
+        border-top: 2px solid rgb(27, 27, 27);
+        border-bottom: 2px solid rgb(27, 27, 27);
+    }
+    &.line-container {
+        border: none;
+        padding: 0;
+        svg {
+            height: 140px;
+            max-height: auto;
+            overflow: none;
+        }
+    }
+    &.type-dropdowns-container {
+        border: 1px solid red;
+        display: grid;
+        grid-auto-columns: auto;
+        select {
+            font-family: 'Fira Code';
+            font-size: x-small; 
+        }
+    }
+    &.converted-groups-container {
+        border: 1px solid red;
+        grid-auto-columns: auto;
+        div {
+            font-size: x-small;
+            max-width: 120px;
+            max-height: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+  }
+
+table {
+    border-spacing: 2px;
+    text-align: center;
+    width: 15px;
+}
