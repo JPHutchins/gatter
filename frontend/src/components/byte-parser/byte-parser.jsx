@@ -1,125 +1,29 @@
-import { useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { store } from 'store';
 
-const toHexString = (b) => b.toString(16).padStart(2, '0').toUpperCase();
+import { Box, Node } from 'components';
+import { NODE } from 'utils/constants';
 
-const makeToSquareId = (streamId) => (i) => `byte-parser-${streamId}_square-${i}`
+import { Uint8, DATA_TYPES_BY_LENGTH } from './helpers';
 
-const ByteCastProto = {
-    cast(bytes, offset, len) {
-        const view = new DataView(bytes.buffer, offset, len);
-        const arrLength = len / this.size;
-        if (len % this.size != 0) {
-            throw Error("Byte length, len, must be multiple of data type size, size.")
-        }
-        const arr = Array(arrLength);
-        for (let i = 0; i < arrLength; i++) {
-            arr[i] = view[this.getter](i * this.size, true);
-        }
-        return arr;
-    }
-}
+const toHexString = (byte) => byte.toString(16).padStart(2, '0').toUpperCase();
 
-const Char = {
-    name: "char",
-    cast: (bytes, offset, len) => String.fromCharCode(...Array.from(bytes.slice(offset, offset + len))),
-};
-
-const Uint8 = {
-    name: "uint8",
-    size: 1,
-    getter: 'getUint8',
-    __proto__: ByteCastProto
-};
-
-const Int8 = {
-    name: "int8",
-    size: 1,
-    getter: 'getInt8',
-    __proto__: ByteCastProto
-}
-
-const Uint16 = {
-    name: "uint16",
-    size: 2,
-    getter: 'getUint16',
-    __proto__: ByteCastProto
-};
-
-const Int16 = {
-    name: "int16",
-    size: 2,
-    getter: 'getInt16',
-    __proto__: ByteCastProto
-};
-
-const Uint32 = {
-    name: "uint32",
-    size: 4,
-    getter: 'getUint32',
-    __proto__: ByteCastProto
-};
-
-const Int32 = {
-    name: "int32",
-    size: 4,
-    getter: 'getInt32',
-    __proto__: ByteCastProto
-};
-
-const Float32 = {
-    name: "float32",
-    size: 4,
-    getter: 'getFloat32',
-    __proto__: ByteCastProto
-}
-
-const Uint64 = {
-    name: "uint64",
-    size: 8,
-    getter: 'getBigUint64',
-    __proto__: ByteCastProto
-};
-
-const Int64 = {
-    name: "int64",
-    size: 8,
-    getter: 'getBigInt64',
-    __proto__: ByteCastProto
-};
-
-const Float64 = {
-    name: "float64",
-    size: 8,
-    getter: 'getFloat64',
-    __proto__: ByteCastProto
-};
-
-const DATA_TYPES_BY_LENGTH = {
-    1: [Uint8, Int8, Char],
-    2: [Uint16, Int16],
-    4: [Uint32, Int32, Float32],
-    8: [Uint64, Int64, Float64],
-};
-
+const ROW_HEIGHT_PX = 16;
+const BYTES_IN_ROW = 8;
+const PADDING_TD = -1
 
 const ByteParser = () => {
     const globalState = useContext(store);
     const { dispatch, state } = globalState;
 
-    const streamId = 0;  // TODO: from props
     const TEST_DATA = Array.from(Uint8Array.from([65, 66, 67, 68, 0, 1, 2, 3, 0xff, 0xfe, 0xfd, 0xfc, 10, 0, 1, 2, 3, 0xff, 0xfe, 0xfd, 0xfc, 10]));
     const BUFFER = Uint8Array.from([65, 66, 67, 68, 0, 1, 2, 3, 0xff, 0xfe, 0xfd, 0xfc, 10, 0, 1, 2, 3, 0xff, 0xfe, 0xfd, 0xfc, 10]);
-    const toSquareId = makeToSquareId(streamId);
 
     const [startingSquare, setStartingSquare] = useState(null);
     const [endingSquare, setEndingSquare] = useState(null);
 
-    // const [groups, setGroups] = useState([]);
     const { groups } = state;
-
-    console.log(groups);
 
     const _crossesGroup = (groups, startingSquare) => (endingSquare) => {
         if (startingSquare === endingSquare) {
@@ -129,8 +33,7 @@ const ByteParser = () => {
         const lowerSquare = startingSquare <= endingSquare ? startingSquare : endingSquare;
         const higherSquare = startingSquare > endingSquare ? startingSquare : endingSquare;
 
-        for (const [i, { start, end }] of groups.entries()) {
-            console.log(start, end, lowerSquare, higherSquare)
+        for (const [_, { start, end }] of groups.entries()) {
             if (endingSquare > startingSquare) {
                 /* selection is right -> left ("low to high", "in order") */
                 if (lowerSquare <= start && higherSquare >= end) {
@@ -150,12 +53,17 @@ const ByteParser = () => {
      */
     const crossesGroup = _crossesGroup(groups, startingSquare);
 
-    const handleSquareClick = (i) => (e) => {
-        e.preventDefault();
-
+    /**
+     * Start selecting a group or finalize selection of a group.
+     * 
+     * @param {number} i The byte offset (index) of the square that was clicked on.
+     */
+    const handleSquareClick = (i) => () => {
         if (startingSquare === null) {
             /* this click selects the starting square */
             setStartingSquare(i);
+            /* the starting square is a valid ending square */
+            setEndingSquare(i);
         } else if (endingSquare === null) {
             /* no valid ending square is selected, do nothing */
             return;
@@ -179,21 +87,19 @@ const ByteParser = () => {
         }
     }
 
-    const handleMouseEnter = (i) => (e) => {
-        e.preventDefault();
-
+    /**
+     * Highlight if hovered square is a valid ending square.
+     * 
+     * @param {number} i The byte offset (index) of the square that was clicked on.
+     */
+    const handleMouseEnter = (i) => () => {
         if (startingSquare === null || crossesGroup(i)) {
-            /* after a starting square has been selected, this allows some ending squares */
+            /* not a valid ending square */
             setEndingSquare(null);
             return;
         }
 
         setEndingSquare(i);
-    }
-
-    const handleMouseLeave = (i) => (e) => {
-        e.preventDefault()
-        setEndingSquare(null);
     }
 
     /**
@@ -209,55 +115,67 @@ const ByteParser = () => {
         })
     }
 
-    const makeLines = (i) => {
+    /**
+     * Render the line, data option selectors, parsed values, and output nodes for the row.
+     * 
+     * @param {number} firstIndexOfRow The first index of a row of bytes, e.g. 0, 8, 16, etc.
+     * @returns {[JSX.Element, JSX.Element, JSX.Element, JSX.Element]} The lines, dropdowns, parsed values, and nodes.
+     */
+    const renderParsedGroups = (firstIndexOfRow) => {
         const lines = []
         const typeDropdowns = [];
         const convertedGroups = [];
+        const outputNodes = [];
+
+        const RIGHT_MOST_X_FRACTION = 1 - (1 / BYTES_IN_ROW / 2)  /* 0.9375 */
 
         let groupsEndingInThisRow = 0;
-        let j = -1;
-        for (const {start, end, dataType} of groups) {
-            j += 1;
-            if (!(end >= i && end < i + 8)) {
-                continue;
+
+        /* iterate each group of bytes and add the line, data options, and parsed values */
+        for (const [groupIndex, {start, end, dataType}] of groups.entries()) {
+            if (!(end >= firstIndexOfRow && end < firstIndexOfRow + BYTES_IN_ROW)) {
+                continue;  /* group doesn't end in this row */
             }
 
             groupsEndingInThisRow += 1;
 
             /* if the group continues from a previous line, set start to the rightmost position */
-            let xStart = Math.max(start, i);
+            let xStart = Math.max(start, firstIndexOfRow);
 
-            /* put them in 0-7 range (we only care about x position in the row) */
-            xStart %= 8;
-            const xEnd = end % 8;
+            /* put them in 0 -> BYTES_IN_ROW range (we only care about x position in the row) */
+            xStart %= BYTES_IN_ROW;
+            const xEnd = end % BYTES_IN_ROW;
 
-            const x = (0.9375 - ((xEnd + xStart) / 2) / 8) * 100;
-            const y = 20 * groupsEndingInThisRow;
+            /* calculate x offset percentage based on position of the group in the row */
+            const x = (RIGHT_MOST_X_FRACTION - ((xEnd + xStart) / 2) / BYTES_IN_ROW) * 100;
+            const y = (ROW_HEIGHT_PX / 2) + ROW_HEIGHT_PX * (groupsEndingInThisRow - 1);
             
             lines.push(
-                <>
-                    <line x1={`${x}%`} y1="0" x2={`${x}%`} y2={y} style={{stroke: "rgb(0,0,0)", strokeWidth: 2}} />
-                    <line x1={`${x}%`} y1={y} x2="100%" y2={y} style={{stroke: "rgb(0,0,0)", strokeWidth: 2}} />
-                </>
+                <Fragment key={groupIndex}>
+                    <line x1={`${x}%`} y1="0" x2={`${x}%`} y2={y} />
+                    <line x1={`${x}%`} y1={y} x2="100%" y2={y} />
+                </Fragment>
             )
 
-            const groupLength = end - start + 1;
+            const groupLength = end - start + 1;  /* the number of 8-bit bytes in the group */
 
+            /* data types where groupLength is divisible by data type size (in bytes) are options */
             const options = Object.entries(DATA_TYPES_BY_LENGTH).reduce((acc, [size, types]) => (
-                (groupLength % size != 0) ? acc : [
+                (groupLength % size !== 0) ? acc : [
                     ...acc,
                     ...types.map(({ name }) => (
-                        <option value={name}>{`${name} [${groupLength / size}]`}</option>
+                        <option key={name} value={name}>{`${name} [${groupLength / size}]`} </option>
                     ))
                 ]
             ), [])
             
-            const handleChange = (groups, start, end, j) => (e) => {
+            /* create the data type change handler */
+            const handleTypeChange = (groups, start, end, groupIndex) => (e) => {
                 for (const values of Object.values(DATA_TYPES_BY_LENGTH)) {
                     for (const dataType of values) {
                         if (e.target.value === dataType.name) {
                             const newGroups = [...groups]
-                            newGroups[j] = {start, end, dataType}
+                            newGroups[groupIndex] = {start, end, dataType}
                             dispatch({
                                 type: 'SET_BYTE_PARSER_GROUPS',
                                 groups: newGroups
@@ -268,131 +186,157 @@ const ByteParser = () => {
             }
 
             typeDropdowns.push(
-                <select onChange={handleChange(groups, start, end, j)}>
+                <select key={groupIndex} value={dataType.name} onChange={handleTypeChange(groups, start, end, groupIndex)}>
                     {options}
                 </select>
             );
 
-            const parsedValue = dataType?.cast(BUFFER, start, groupLength);
+            /* parse the value from the group of bytes according to the selected data type */
+            const parsedValue = dataType.cast(BUFFER, start, groupLength);
+            const prettyPrinted = dataType.name === "char" ? parsedValue : `[${parsedValue.join(', ')}]`;
+            
+            convertedGroups.push(
+                <div key={groupIndex}>
+                    {prettyPrinted}
+                </div>
+            );
 
-            let prettyPrinted = null;
-            if (parsedValue) {
-                prettyPrinted = dataType?.name === "char" ? parsedValue : parsedValue.map((x) => `${x}, `)
-            }
-
-            convertedGroups.push(<div>{parsedValue ? prettyPrinted : 0}</div>);
+            outputNodes.push(
+                <div key={groupIndex}>
+                    <Node direction={NODE.OUTPUT} />
+                </div>
+            );
         }
 
-        return [lines, typeDropdowns, convertedGroups];
+        return [lines, typeDropdowns, convertedGroups, outputNodes];
     }
 
+    /**
+     * Create the td element for the given byte.
+     * 
+     * @param {number} byte The value of the byte, e.g. 0-255, 0x00-0xFF
+     * @param {number} byteIndex The offset of the byte (array index)
+     * @returns {JSX.Element} The td element for the byte.
+     */
+    const renderByteTd = (byte, byteIndex) => {
+        let className = null;
+        let onClick = null;
+        let onMouseEnter = null;
+        let onMouseLeave = null;
 
-    const rows = () => {
+        for (const [groupIndex, {start, end}] of groups.entries()) {
+            if (byteIndex >= start && byteIndex <= end) {   // byte is part of a group
+                let groupedClassName = 'grouped';
+                if (byteIndex === start && byteIndex !== end) {
+                    groupedClassName += ' right-boundary';
+                }
+                if (byteIndex === end && byteIndex !== start) {
+                    groupedClassName += ' left-boundary';
+                }
+                if (byteIndex !== start && byteIndex !== end) {
+                    groupedClassName += ' interior';
+                }
+
+                className = `byte-parser-square ${groupedClassName}`;
+                onClick = () => handleGroupClick(groupIndex)();
+
+                break;
+            }
+        }
+
+        if (className === null) {  // byte is not part of a group
+            const start = byteIndex === startingSquare ? 'start' : '';
+            const end = byteIndex === endingSquare ? 'end' : '';
+            const middle = (startingSquare !== null && endingSquare !== null) &&
+                (
+                    (endingSquare > startingSquare && byteIndex < endingSquare && byteIndex > startingSquare) ||
+                    (startingSquare > endingSquare && byteIndex > endingSquare && byteIndex < startingSquare)
+                ) ? 'middle' : '';
+            const empty = byte === PADDING_TD ? 'empty' : '';
+
+            className = `byte-parser-square ${start} ${end} ${middle} ${empty}`;
+            onClick = () => handleSquareClick(byteIndex)();
+            onMouseEnter = () => handleMouseEnter(byteIndex)();
+            onMouseLeave = () => setEndingSquare(null);
+        }
+        
+        return (
+            <td
+                key={byteIndex}
+                className={className}
+                onClick={onClick}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
+            >
+                {toHexString(byte)}
+            </td>
+        )
+    }
+
+    /**
+     * Render the rows of the ByteParser.
+     * 
+     * @returns The list of row elements.  Each "row" is three tr elements.
+     */
+    const renderRows = () => {
         const rows = [];
 
-        for (let i = 0; i < TEST_DATA.length; i += 8) {
-            const [lines, typeDropdowns, convertedGroups] = makeLines(i);
+        for (let firstIndexOfRow = 0; firstIndexOfRow < TEST_DATA.length; firstIndexOfRow += BYTES_IN_ROW) {
+            const [lines, typeDropdowns, convertedGroups, outputNodes] = renderParsedGroups(firstIndexOfRow);
             rows.push(
-                <>
+                <Fragment key={firstIndexOfRow}>
                     <tr>
-                        {[...Array(8).keys()].reverse().map((j) => <td key={i+j} className="byte-index">{i + j}</td>)}
-                    </tr>
-                    <tr key={`byte-parser-${streamId}_row-${i}`}>
-                        {TEST_DATA.concat(Array(8).fill(-1)).slice(i, i + 8).reverse().map((b, j) => {
-                            let byteIndex = 7 - j + i;
-                            let id = toSquareId(byteIndex);
-
-                            for (const [i, {start, end}] of groups.entries()) {
-                                if (byteIndex >= start && byteIndex <= end) {
-                                    let groupedClassName = 'grouped';
-                                    if (byteIndex === start) {
-                                        groupedClassName = 'grouped-right-boundary';
-                                    }
-                                    if (byteIndex === end) {
-                                        groupedClassName = 'grouped-left-boundary';
-                                    }
-                                    if (byteIndex === start && byteIndex === end) {
-                                        groupedClassName = 'grouped-single-square';
-                                    }
-                                    return (
-                                        <td
-                                            id={id}
-                                            key={id}
-                                            className={`byte-parser-square ${groupedClassName}`}
-                                            onClick={() => handleGroupClick(i)()}
-                                        >
-                                            {toHexString(b)}
-                                        </td>
-                                    )
-                                }
-                            }
-
-                            let start = byteIndex === startingSquare ? 'start' : '';
-                            let end = byteIndex === endingSquare ? 'end' : '';
-                            let middle = (startingSquare !== null && endingSquare !== null) &&
-                                ((endingSquare > startingSquare && byteIndex < endingSquare && byteIndex > startingSquare)
-                                    || (startingSquare > endingSquare && byteIndex > endingSquare && byteIndex < startingSquare)) ? 'middle' : '';
-                            let empty = b === -1 ? 'empty' : '';
-                            return (
-                                <td
-                                    id={id}
-                                    key={id}
-                                    className={`byte-parser-square ${start} ${end} ${middle} ${empty}`}
-                                    onClick={(e) => handleSquareClick(byteIndex)(e)}
-                                    onMouseEnter={(e) => handleMouseEnter(byteIndex)(e)}
-                                    onMouseLeave={(e) => handleMouseLeave(byteIndex)(e)}
-                                >
-                                    {toHexString(b)}
-                                </td>
-                            )
-                        })}
+                        {[...Array(BYTES_IN_ROW).keys()]
+                            .reverse()
+                            .map((i) => <td key={i} className="byte-index">{i + firstIndexOfRow}</td>)
+                        }
                     </tr>
                     <tr>
-                        <td colSpan="8" className="line-container">
-                            <svg height={`${20 + 20 * lines.length}px`} width="100%" style={{height: "100%" }}>
+                        {TEST_DATA.concat(Array(BYTES_IN_ROW).fill(PADDING_TD))  // add padding
+                            .slice(firstIndexOfRow, firstIndexOfRow + BYTES_IN_ROW)  // slice row
+                            .reverse()  // bytes displayed right -> left; LSB ("index 0") in rightmost position
+                            .map((byte, i) => {
+                                const byteIndex = BYTES_IN_ROW - 1 - i + firstIndexOfRow;
+                                return renderByteTd(byte, byteIndex);
+                            })
+                        }
+                    </tr>
+                    <tr>
+                        <td colSpan={BYTES_IN_ROW} className="line-container">
+                            <svg height={`${ROW_HEIGHT_PX * lines.length}px`} width="100%">
                                 {lines}
                             </svg>
                         </td>
-                        <td className="type-dropdowns-container">
-                            <>
+                        <td className="grid-cell">
+                            <div className="type-dropdowns-container">
                                 {typeDropdowns}
-                            </>
-                        </td>
-                        <td className="converted-groups-container">
-                            <>
+                            </div>
+                            <div className="converted-groups-container">
                                 {convertedGroups}
-                            </>
+                            </div>
+                            <div className="output-nodes-container">
+                                {outputNodes}
+                            </div>
                         </td>
                     </tr>
-                </>
+                </Fragment>
             )
         }
         return rows
     }
 
     return (
-        <div className='byte-parser'>
-            <table>
-                <colgroup>
-                    <col/>
-                    <col/>
-                    <col/>
-                    <col/>
-                    <col/>
-                    <col/>
-                    <col/>
-                    <col/>
-                    <col/>
-                    <col/>
-                </colgroup>
-                <tbody>
-                    {rows()}
-                </tbody>
-            </table>
-        </div>
-
+        <Box>
+            <div className='byte-parser'>
+                <Node direction={NODE.INPUT} />
+                <table>
+                    <tbody>
+                        {renderRows()}
+                    </tbody>
+                </table>
+            </div>
+        </Box>
     );
-
 };
 
 export default ByteParser;

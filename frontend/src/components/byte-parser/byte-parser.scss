@@ -1,8 +1,11 @@
+$row-height: 16px;
+$byte-border: rgb(27, 27, 27);
+
 .byte-parser {
-    height: 400px;
-    width: 600px;
-    border-style: solid;
-    border-color: red;
+    position: relative;
+    border-radius: 10px;
+    border: 1px solid $dark-gray;
+    background-color: white;
     .start {
         background-color: rgb(213, 216, 44);
     }
@@ -18,69 +21,84 @@
 }
 
 td {
-    border: 2px solid rgb(182, 182, 182);
     padding: 4px 4px;
-    max-height: 15px;
-    height: 15px;
     font-family: 'Fira Code';
     font-size: small;
     user-select: none;
+    box-sizing: border-box;
     &.byte-index {
         border: none;
         font-size: x-small;
     }
+    &.byte-parser-square {
+        border: 1.5px solid rgb(182, 182, 182);
+        border-style: solid;
+        border-width: 1.5px;
+    }
     &.grouped {
-        border-left: none;
-        border-right: none;
-        border-top: 2px solid rgb(27, 27, 27);
-        border-bottom: 2px solid rgb(27, 27, 27);
+        border-color: $byte-border;
+        border-width: 1.5px;
     }
-    &.grouped-left-boundary {
-        border-left: 2px solid rgb(27, 27, 27);
-        border-right: none;
-        border-top: 2px solid rgb(27, 27, 27);
-        border-bottom: 2px solid rgb(27, 27, 27);
+    &.left-boundary {
+        border-color: $byte-border transparent $byte-border $byte-border;
     }
-    &.grouped-right-boundary {
-        border-left: none;
-        border-right: 2px solid rgb(27, 27, 27);
-        border-top: 2px solid rgb(27, 27, 27);
-        border-bottom: 2px solid rgb(27, 27, 27);
+    &.right-boundary {
+        border-color: $byte-border $byte-border $byte-border transparent;
     }
-    &.grouped-single-square {
-        border-left: 2px solid rgb(27, 27, 27);
-        border-right: 2px solid rgb(27, 27, 27);
-        border-top: 2px solid rgb(27, 27, 27);
-        border-bottom: 2px solid rgb(27, 27, 27);
+    &.interior {
+        border-color: $byte-border transparent $byte-border transparent;
     }
     &.line-container {
         border: none;
         padding: 0;
         svg {
-            height: 140px;
-            max-height: auto;
-            overflow: none;
+            stroke: rgb(100,100,100);
+            stroke-width: 1;
         }
     }
-    &.type-dropdowns-container {
-        border: 1px solid red;
+    &.grid-cell {
+        border: none;
         display: grid;
-        grid-auto-columns: auto;
-        select {
-            font-family: 'Fira Code';
-            font-size: x-small; 
+        grid-template-columns: 1fr 1fr $row-height;
+        padding: 0;
+        .type-dropdowns-container {
+            grid-auto-rows: $row-height;
+            display: grid;
+            grid-auto-columns: auto;
+            width: 100px;
+            select {
+                font-family: 'Fira Code';
+                font-size: x-small;
+                border-top: none;
+                border-bottom: none;
+                border-radius: 6px;
+                text-align: right;
+            }
         }
-    }
-    &.converted-groups-container {
-        border: 1px solid red;
-        grid-auto-columns: auto;
-        div {
-            font-size: x-small;
-            max-width: 120px;
-            max-height: 15px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .converted-groups-container {
+            grid-auto-rows: $row-height;
+            height: 100%;
+            width: 100px;
+            div {
+                font-size: x-small;
+                max-width: 120px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                height: $row-height;
+                text-align: left;
+                padding-left: 4px;
+                border-bottom: 1px solid lightgrey;
+                box-sizing: border-box;
+                user-select: text;
+            }
+        }
+        .output-nodes-container {
+            grid-auto-rows: $row-height;
+            height: 100%;
+            div {
+                position: relative;
+            }
         }
     }
   }
@@ -88,5 +106,5 @@ td {
 table {
     border-spacing: 2px;
     text-align: center;
-    width: 15px;
+    width: $row-height;
 }
