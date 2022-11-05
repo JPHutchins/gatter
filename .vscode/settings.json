@@ -1,7 +1,16 @@
 {
-    "python.analysis.extraPaths": ["${workspaceFolder}/backend/"],
+    "python.formatting.provider": "black",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/backend/"
+    ],
     "python.linting.flake8Enabled": true,
-    "python.linting.flake8Args": ["--config=backend/.flake8"],
+    "python.linting.flake8Args": [
+        "--config=backend/.flake8"
+    ],
     "python.linting.mypyEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    }
 }
