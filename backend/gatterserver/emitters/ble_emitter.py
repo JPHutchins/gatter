@@ -2,7 +2,7 @@
 
 import logging
 from asyncio.exceptions import TimeoutError
-from typing import Awaitable, Callable, Dict, List, Optional, Union
+from typing import Awaitable, Callable, Dict, List, Optional, Union, cast
 from uuid import UUID
 
 from bleak import BleakClient
@@ -29,6 +29,8 @@ class BLEEmitter(Emitter):
         self._characteristics: Dict[int, BleakGATTCharacteristic] = {}
         self._streams = {}
         self._next_channel_id = 0
+
+        self._em = cast(EmitterManager, self._em)
 
     async def connect(self, timeout: float = DEFAULT_CONNECTION_TIMEOUT) -> bool:
         if self.bc.is_connected:
@@ -138,15 +140,15 @@ class BLEEmitter(Emitter):
 
         # make a closure of send and characteristic_handle
         def _make_start(
-            send: Callable[[bytes], Awaitable], characteristic_handle: int
+            send: Callable[[bytes], None], characteristic_handle: int
         ) -> Callable[[], Awaitable]:
             async def start(
                 _: Optional[Callable[[bytes], Awaitable]] = None, **kwargs
             ) -> Callable[[], Awaitable]:
                 """Start notifications and return the awaitable to stop them."""
 
-                async def callback(_: int, data: bytearray):
-                    await send(data)
+                def callback(_: int, data: bytearray):
+                    send(data)
 
                 await self.bc.start_notify(characteristic_handle, callback, **kwargs)
 

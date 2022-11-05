@@ -3,7 +3,6 @@
 import asyncio
 import logging
 import struct
-from collections import deque
 from typing import AsyncIterator, Awaitable, Callable, Optional
 
 from pydantic import BaseModel  # type: ignore
@@ -21,7 +20,7 @@ class Stream(BaseModel):
     start: Callable[[Optional[Callable[[bytes], Awaitable]]], Awaitable]
     stop: Optional[Callable[[], Awaitable]] = None
     task_handle: Optional[asyncio.Task] = None
-    send: Optional[Callable[[bytes], Awaitable]] = None
+    send: Optional[Callable[[bytes], None]] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -55,12 +54,11 @@ class StreamManager:
     """Manage streams of data."""
 
     def __init__(self):
-        self._lock = asyncio.Lock()
-        self._pending_data = deque([])
-        self._semaphore = asyncio.Semaphore(0)
         self._streams = {}
+        self._lock = asyncio.Lock()
+        self._queue = asyncio.Queue()
 
-    async def add_stream(self, stream_id: models.StreamId) -> Callable[[bytes], Awaitable]:
+    async def add_stream(self, stream_id: models.StreamId) -> Callable[[bytes], None]:
         """Register a stream and return an awaitable used to queue packets."""
         async with self._lock:
             if stream_id in self._streams:
@@ -69,15 +67,9 @@ class StreamManager:
 
         LOGGER.info(f"{stream_id} added.")
 
-        def _send_wrapper(stream_id: models.StreamId) -> Callable[[bytes], Awaitable]:
-            async def _send(data: bytes):
-                async with self._lock:
-                    try:
-                        self._pending_data.append(StreamPacket(stream_id, data))
-                        self._semaphore.release()
-                    except Exception as e:
-                        LOGGER.exception("Exception while sending data to queue.")
-                        raise e
+        def _send_wrapper(stream_id: models.StreamId) -> Callable[[bytes], None]:
+            def _send(data: bytes):
+                self._queue.put_nowait(StreamPacket(stream_id, data))
 
             return _send
 
@@ -94,6 +86,4 @@ class StreamManager:
 
     async def receive(self) -> AsyncIterator[StreamPacket]:
         while True:
-            await self._semaphore.acquire()
-            async with self._lock:
-                yield self._pending_data.popleft()
+            yield await self._queue.get()

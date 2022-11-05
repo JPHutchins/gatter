@@ -1,7 +1,5 @@
 """Test streams."""
 
-import asyncio
-
 import pytest
 from pydantic import ValidationError  # type: ignore
 
@@ -72,8 +70,7 @@ def test_stream_manager_constructor():
     sm = StreamManager()
     assert sm
     assert sm._lock.locked() is False
-    assert not sm._semaphore.locked() is False
-    assert len(sm._pending_data) == 0
+    assert sm._queue.qsize() == 0
     assert len(sm._streams) == 0
 
 
@@ -127,18 +124,18 @@ async def test_stream_manager_callbacks_set_flag_and_queue_packets():
     f0 = await sm.add_stream(s0)
     f1 = await sm.add_stream(s1)
 
-    assert sm._semaphore.locked()
+    f0(b"\x00")
+    assert sm._queue.qsize() == 1
+    assert sm._queue.get_nowait().byte_array == b"\x00\x00\x01\x00\x00"
+    assert sm._queue.qsize() == 0
 
-    await f0(b"\x00")
-    assert not sm._semaphore.locked()
-    assert len(sm._pending_data) == 1
-    assert sm._pending_data[0].byte_array == b"\x00\x00\x01\x00\x00"
-
-    await f1(b"\x01")
-    assert not sm._semaphore.locked()
-    assert len(sm._pending_data) == 2
-    assert sm._pending_data[0].byte_array == b"\x00\x00\x01\x00\x00"
-    assert sm._pending_data[1].byte_array == b"\x01\x00\x01\x00\x01"
+    f0(b"\x00")
+    f1(b"\x01")
+    assert sm._queue.qsize() == 2
+    assert sm._queue.get_nowait().byte_array == b"\x00\x00\x01\x00\x00"
+    assert sm._queue.qsize() == 1
+    assert sm._queue.get_nowait().byte_array == b"\x01\x00\x01\x00\x01"
+    assert sm._queue.qsize() == 0
 
 
 @pytest.mark.asyncio
@@ -146,17 +143,13 @@ async def test_stream_manager_receive_method():
     s0 = models.StreamId(deviceId=0, channelId=0)
     sm = StreamManager()
     f0 = await sm.add_stream(s0)
-    assert sm._semaphore.locked()
 
-    await f0(b"\x00")
-    assert not sm._semaphore.locked()
-    assert len(sm._pending_data) == 1
-    assert sm._pending_data[0].byte_array == b"\x00\x00\x01\x00\x00"
+    f0(b"\x00")
+    assert sm._queue.qsize() == 1
 
     packet = await sm.receive().__anext__()
     assert packet.byte_array == b"\x00\x00\x01\x00\x00"
-    assert len(sm._pending_data) == 0
-    assert sm._semaphore.locked()
+    assert sm._queue.qsize() == 0
 
 
 @pytest.mark.asyncio
@@ -169,22 +162,15 @@ async def test_stream_manager_receive_method_many():
     f0 = await sm.add_stream(s0)
     f1 = await sm.add_stream(s1)
 
-    assert sm._semaphore.locked()
-
     # Add 1000 events to the stream queue
-    await asyncio.gather(
-        *tuple(
-            [f0(int.to_bytes(even, 2, "little")) for even in range(0, 1000, 2)]
-            + [f1(int.to_bytes(odd, 2, "little")) for odd in range(1, 1000, 2)]
-        )
-    )
+    [f0(int.to_bytes(even, 2, "little")) for even in range(0, 1000, 2)]
+    [f1(int.to_bytes(odd, 2, "little")) for odd in range(1, 1000, 2)]
 
-    assert not sm._semaphore.locked()
-    assert len(sm._pending_data) == 1000
+    assert sm._queue.qsize() == 1000
 
     s0_vals = []
     s1_vals = []
-    for _ in range(len(sm._pending_data)):
+    for _ in range(sm._queue.qsize()):
         packet: StreamPacket = await sm.receive().__anext__()
         data = packet.byte_array
         size = int.from_bytes(data[2:4], "little")
@@ -198,5 +184,4 @@ async def test_stream_manager_receive_method_many():
     assert s0_vals == [even for even in range(0, 1000, 2)]
     assert s1_vals == [odd for odd in range(1, 1000, 2)]
 
-    assert sm._semaphore.locked()
-    assert len(sm._pending_data) == 0
+    assert sm._queue.qsize() == 0

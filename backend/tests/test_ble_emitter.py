@@ -251,7 +251,7 @@ async def test_maybe_register_stream(ble_emitter: Tuple[BLEEmitter, EmitterManag
     assert inspect.iscoroutinefunction(s.start)
     assert s.stop is None
     assert s.task_handle is None
-    assert inspect.iscoroutinefunction(s.send)
+    assert not inspect.iscoroutinefunction(s.send)
 
     c.properties = ["indicate"]
     id = await e._maybe_register_stream(c)

@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from abc import abstractmethod
-from typing import Awaitable, Callable, Optional, Union
+from typing import Awaitable, Callable, Optional, Union, cast
 
 from gatterserver import models
 from gatterserver.emitters.emitter import Emitter, Stream
@@ -18,7 +18,7 @@ class SignalGenerator(Emitter):
         self._stop = False
 
     @abstractmethod
-    async def start_stream(self, send: Callable[[bytes], Awaitable]):
+    async def start_stream(self, send: Callable[[bytes], None]):
         raise NotImplementedError
 
     def stop_stream(self):
@@ -55,8 +55,8 @@ class Ramp(SignalGenerator):
         if self._val is None:
             self._val = min
 
-    async def start_stream(self, send: Callable[[bytes], Awaitable]) -> Callable[[], Awaitable]:
-        async def _task(send: Callable[[bytes], Awaitable]):
+    async def start_stream(self, send: Callable[[bytes], None]) -> Callable[[], Awaitable]:
+        async def _task(send: Callable[[bytes], None]):
             try:
                 while True:
                     if self._val > self._max:  # type: ignore
@@ -64,11 +64,12 @@ class Ramp(SignalGenerator):
                     if self._stop:  # TODO: think about timing and sync
                         self._stop = False
                         break
-                    await asyncio.gather(
-                        send(int.to_bytes(self._val, 4, "little", signed=True)),  # type: ignore
-                        asyncio.sleep(self._step_interval_s),  # type: ignore
-                    )
-                    self._val += self._step  # type: ignore
+                    self._val = cast(int, self._val)
+                    send(int.to_bytes(self._val, 4, "little", signed=True))
+                    self._step_interval_s = cast(float, self._step_interval_s)
+                    await asyncio.sleep(self._step_interval_s)
+                    self._step = cast(float, self._step)
+                    self._val += self._step
             except asyncio.exceptions.CancelledError:
                 LOGGER.debug("Task canceled.")
 
