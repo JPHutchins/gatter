@@ -95,8 +95,8 @@ const StateProvider = ({ children }) => {
                         ...state.connections,
                         {
                             start: state.selectedOutput,
-                            end: action.payload.end,
-                            setInputs: action.payload.setInputs,
+                            end: action.end,
+                            setIncomingArgs: action.setIncomingArgs,
                         }
                     ]
                 };

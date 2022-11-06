@@ -7,6 +7,8 @@ import Draggable from 'react-draggable';
 import { makeUseNextId } from 'utils/hooks';
 import { NODE } from 'utils/constants';
 
+const CURSOR_SHIFT_HACK = 100;
+
 const useNextNodeId = makeUseNextId('node');
 
 const CursorNode = ({ nodeId, handleMouseDown }) => {
@@ -61,12 +63,13 @@ CursorNode.propTypes = {
     handleMouseDown: PropTypes.func.isRequired,
 };
 
-const InputNode = ({ nodeId, selectedOutput, dispatch, className, setInputs }) => {
-    const handleMouseUp = (e) => {
+const InputNode = ({ nodeId, selectedOutput, dispatch, className, setIncomingArgs }) => {
+    const handleMouseUp = () => {
         if (selectedOutput !== null) {
             dispatch({
                 type: 'ADD_CONNECTION',
-                payload: { end: `${nodeId}`, setInputs },
+                end: `${nodeId}`,
+                setIncomingArgs,
             });
         }
     };
@@ -85,13 +88,12 @@ InputNode.propTypes = {
     selectedOutput: PropTypes.string,
     dispatch: PropTypes.func.isRequired,
     className: PropTypes.string.isRequired,
-    setInputs: PropTypes.func.isRequired,
+    setIncomingArgs: PropTypes.func.isRequired,
 };
 
 const OutputNode = ({ nodeId, dispatch, className }) => {
     const handleMouseDown = (e) => {
         e.preventDefault(); // catch the mouse down here
-        const CURSOR_SHIFT_HACK = 100;
         const rect = e.target.getBoundingClientRect();
         /* get the x, y offset from the center of the node */
         const offsetX = (e.clientX - rect.left - (rect.right - rect.left) / 2) + CURSOR_SHIFT_HACK;
@@ -122,49 +124,68 @@ OutputNode.propTypes = {
     className: PropTypes.string.isRequired,
 };
 
-const Node = ({ direction, setNodeId, setInputs }) => {
-    const [validHoverClassLabel, setValidHoverClassLabel] = useState('');
-    const nodeIdRef = useRef(useNextNodeId());    
-    useEffect(() => {
-        setNodeId(nodeIdRef.current);
-    }, []);
+const Node = ({ direction, setOutputNodeId = null, setIncomingArgs }) => {
+    const { dispatch, state } = useContext(store);
 
-    const globalState = useContext(store);
-    const { dispatch, state } = globalState;
-    const { selectedOutput } = state;
-    const isValidInputHover = selectedOutput !== null && direction === NODE.INPUT;
-    const isValidOutputHover = selectedOutput === null && direction === NODE.OUTPUT;
+    const [validHoverClassLabel, setValidHoverClassLabel] = useState('');
+
+    const nodeIdRef = useRef(useNextNodeId());
+
+    useEffect(() => {
+        if (direction === NODE.INPUT) {
+            return;
+        }
+        if (setOutputNodeId === null) {
+            throw Error("setOutputNodeId must be defined for OutputNode!");
+        }
+        setOutputNodeId(nodeIdRef.current);
+    }, []);
+    
+    const isValidInputHover = state.selectedOutput !== null && direction === NODE.INPUT;
+    const isValidOutputHover = state.selectedOutput === null && direction === NODE.OUTPUT;
     const isValidHover = isValidInputHover || isValidOutputHover;
 
-    const handleMouseEnter = (e) => {
-        setValidHoverClassLabel(isValidHover ? 'valid-hover' : '');
-    };
+    const selectedOutputClassLabel = nodeIdRef.current === state.selectedOutput ? 'selected-output' : '';
 
-    const selectedOutputClassLabel = nodeIdRef.current === selectedOutput ? 'selected-output' : '';
-    const className = `node ${direction} ${selectedOutputClassLabel} ${validHoverClassLabel}`;
     const Component = direction === NODE.INPUT ? InputNode : OutputNode;
 
     return (
         <div
             className={`node-wrapper ${direction}`}
             onMouseLeave={() => setValidHoverClassLabel('')}
-            onMouseEnter={handleMouseEnter}
+            onMouseEnter={() => setValidHoverClassLabel(isValidHover ? 'valid-hover' : '')}
         >
             <Component
                 dispatch={dispatch}
                 nodeId={nodeIdRef.current}
-                selectedOutput={selectedOutput}
-                className={className}
-                setInputs={setInputs}
+                selectedOutput={state.selectedOutput}
+                className={`node ${direction} ${selectedOutputClassLabel} ${validHoverClassLabel}`}
+                setIncomingArgs={setIncomingArgs}
             />
         </div>
     );
 };
 
 Node.propTypes = {
+    /**
+     * A node represents an input to or output from another node.
+     */
     direction: PropTypes.oneOf([NODE.INPUT, NODE.OUTPUT]),
-    setNodeId: PropTypes.func.isRequired,
-    setInputs: PropTypes.func
+    /**
+     * Required for `InputNode`s, ignored for `OutputNode`s.
+     * 
+     * The `InputNode` will dispatch the `setIncomingArgs` callback when another component's
+     * `OutputNode` connects to it.  The `setIncomingArgs` callback may be called synchronously or
+     * asynchronously depending on the nature of the outputting node.
+     */
+     setIncomingArgs: PropTypes.func,
+    /**
+     * Required for `OutputNode`s, ignored for `InputNode`s.
+     * 
+     * The `OutputNode` will use the `setOutputNodeId` callback to pass its `nodeId` back to its
+     * parent.
+     */
+    setOutputNodeId: PropTypes.func,
 };
 
 export default Node;

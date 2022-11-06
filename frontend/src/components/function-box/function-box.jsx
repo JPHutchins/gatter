@@ -1,57 +1,45 @@
-import { useState, useEffect } from 'react';
-import { JSFunction, Box } from 'components';
+import { useState } from 'react';
+import { JSFunction, Box, Node } from 'components';
 import { store } from 'store';
-import { useContextSelector, useContext } from 'use-context-selector';
-import { Node } from 'components';
+import { useContextSelector } from 'use-context-selector';
 import { NODE } from 'utils/constants';
 
-const TEST_ARGS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
 const FunctionBox = ({ deleteBox, boxId }) => {
-    const [output, setOutput] = useState('');
-    const box = useContextSelector(store, ({ state }) => state.boxes?.[boxId]) ?? {};
-    const connections =  useContextSelector(store, ({ state }) => state.connections) ?? [];
-    const [inputs, __setInputs] = useState(TEST_ARGS);
-    const setInputs = (...args) => {
-        console.log(...args);
-        __setInputs(...args);
-    };
+    const connections = useContextSelector(store, ({ state }) => state.connections);
 
-    const { formula, next } = box;
-    const { dispatch } = useContext(store);
-    const [inputNodeId, setInputNodeId] = useState(null);
+    const [outputDisplay, setOutputDisplay] = useState(null);
+
+    /* this component's InputNode will dispatch the setIncomingArgs callback when another
+     * component's OutputNode connects to it */
+    const [incomingArgs, setIncomingArgs] = useState(null);
+
+    /* this component's OutputNode will use the setOutputNodeId callback to pass its nodeId
+     * back to this component */
     const [outputNodeId, setOutputNodeId] = useState(null);
-    const inputConnection = connections.find((connection) => connection.end === inputNodeId);
-    const inputConnectedNode = inputConnection?.start;
-    const outputConnection = connections.find((connection) => connection.start === outputNodeId);
-    const outputConnectedNode = outputConnection?.end;
-    const inputSetter = outputConnection?.setInputs;
 
-    console.log('boxId', boxId, 'inputConnectedNode', inputConnectedNode, 'outputConnectedNode', outputConnectedNode);
-    useEffect(() => {
-        if (formula) {
-            const result = formula(inputs);
-            setOutput(result);
-            dispatch({
-                type: 'SET_BOX_INPUTS',
-                boxId: next,
-                inputs: result,
-            });
+    const outputConnections = connections.filter((connection) => connection.start === outputNodeId);
+
+    const setOutgoingArgs = (...args) => {
+        setOutputDisplay(...args);
+
+        /* send the output to all connected nodes */
+        for (const outputConnection of outputConnections) {
+            outputConnection.setIncomingArgs(...args);
         }
-    }, [inputs, formula]);
+    }
 
     return (
         <Box>
             <div className="input-output-wrapper">
                 <h1>{boxId}</h1>
                 <div className="input-output">
-                    <p><strong>Input:</strong> {`${JSON.stringify(inputs)}`}</p>
+                    <p><strong>Input:</strong> {`${JSON.stringify(incomingArgs)}`}</p>
                 </div>
-                <Node setInputs={setInputs} setNodeId={setInputNodeId} direction={NODE.INPUT} />
-                <JSFunction args={inputs} setOutput={setOutput} boxId={boxId} inputSetter={inputSetter} />
-                <Node setNodeId={setOutputNodeId} direction={NODE.OUTPUT} />
+                <Node direction={NODE.INPUT} setIncomingArgs={setIncomingArgs} />
+                <JSFunction args={incomingArgs} boxId={boxId} setOutgoingArgs={setOutgoingArgs} />
+                <Node direction={NODE.OUTPUT} setOutputNodeId={setOutputNodeId} />
                 <div className="input-output">
-                    <p><strong>Output:</strong> {`${JSON.stringify(output)}`}</p>
+                    <p><strong>Output:</strong> {`${JSON.stringify(outputDisplay)}`}</p>
                 </div>
                 <button onClick={deleteBox}>Delete</button>
             </div>

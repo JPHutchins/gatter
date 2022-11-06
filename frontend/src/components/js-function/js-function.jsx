@@ -4,7 +4,7 @@ import { useContext } from 'use-context-selector';
 
 const IDENTITY_FUNCTION = '(x) => x;'
 
-const JSFunction = ({ args, setOutput, boxId, inputSetter = () => {} }) => {
+const JSFunction = ({ args, boxId, setOutgoingArgs }) => {
     const { dispatch, state } = useContext(store);
 
     const [formulaText, setFormulaText] = useState(IDENTITY_FUNCTION);
@@ -30,20 +30,14 @@ const JSFunction = ({ args, setOutput, boxId, inputSetter = () => {} }) => {
     };
 
     const calculate = () => {
-        if (args === null || args === undefined) {
-            return null;
-        }
-
         try {
             setFunctionError(false);
             const output = state.boxes[boxId].func(args);
-            setOutput(output);
-            inputSetter(output);
+            setOutgoingArgs(output);
         } catch (e) {
             setFunctionError(true);
             console.warn(e); // TODO: notify user of error
-            setOutput(null);
-            inputSetter(null);
+            setOutgoingArgs(null);
         }
     };
 
