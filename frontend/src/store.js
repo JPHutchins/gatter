@@ -48,12 +48,12 @@ const StateProvider = ({ children }) => {
                         next: action.next,
                     }
                 }};
-            case 'SET_BOX_FORMULA':
+            case 'SET_JS_FUNCTION':
                 return { ...state, boxes: {
                     ...state.boxes,
                     [action.boxId]: {
                         ...state.boxes[action.boxId],
-                        formula: action.formula,
+                        function: action.function,
                     }
                 }};
             case 'SET_BOX_INPUTS':

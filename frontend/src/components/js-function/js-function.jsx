@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { store } from 'store';
 import { useContext } from 'use-context-selector';
 
-const Formula = ({ args, setOutput, boxId, inputSetter = () => {} }) => {
+const JSFunction = ({ args, setOutput, boxId, inputSetter = () => {} }) => {
     const identityFn = '(x) => x;';
     const [formulaText, setFormulaText] = useState(identityFn);
     const [editable, setEditable] = useState(false);
@@ -11,7 +11,7 @@ const Formula = ({ args, setOutput, boxId, inputSetter = () => {} }) => {
     const enable = () => setEditable(true);
     const disable = () => setEditable(false);
     const saveFormula = (formula) => dispatch(({
-        type: 'SET_BOX_FORMULA',
+        type: 'SET_JS_FUNCTION',
         boxId,
         formula,
     }));
@@ -61,4 +61,4 @@ const Formula = ({ args, setOutput, boxId, inputSetter = () => {} }) => {
     );
 };
 
-export default Formula;
+export default JSFunction;

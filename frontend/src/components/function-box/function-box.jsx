@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Formula, Box } from 'components';
+import { JSFunction, Box } from 'components';
 import { store } from 'store';
 import { useContextSelector, useContext } from 'use-context-selector';
 import { Node } from 'components';
@@ -48,7 +48,7 @@ const FunctionBox = ({ deleteBox, boxId }) => {
                     <p><strong>Input:</strong> {`${JSON.stringify(inputs)}`}</p>
                 </div>
                 <Node setInputs={setInputs} setNodeId={setInputNodeId} direction={NODE.INPUT} />
-                <Formula args={inputs} setOutput={setOutput} boxId={boxId} inputSetter={inputSetter} />
+                <JSFunction args={inputs} setOutput={setOutput} boxId={boxId} inputSetter={inputSetter} />
                 <Node setNodeId={setOutputNodeId} direction={NODE.OUTPUT} />
                 <div className="input-output">
                     <p><strong>Output:</strong> {`${JSON.stringify(output)}`}</p>
