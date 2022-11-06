@@ -2,56 +2,45 @@ import { useState, useEffect } from 'react';
 import { store } from 'store';
 import { useContext } from 'use-context-selector';
 
+const IDENTITY_FUNCTION = '(x) => x;'
+
 const JSFunction = ({ args, setOutput, boxId, inputSetter = () => {} }) => {
-    const identityFn = '(x) => x;';
-    const [formulaText, setFormulaText] = useState(identityFn);
+    const [formulaText, setFormulaText] = useState(IDENTITY_FUNCTION);
     const [editable, setEditable] = useState(false);
-    const { dispatch } = useContext(store);
+    const { dispatch, state } = useContext(store);
 
     const enable = () => setEditable(true);
-    const disable = () => setEditable(false);
-    const saveFormula = (formula) => dispatch(({
-        type: 'SET_JS_FUNCTION',
-        boxId,
-        formula,
-    }));
-
-    const createFunction = () => (
-        // eslint-disable-next-line no-new-func
-        new Function(`return ${formulaText}`)
-    );
+    const disable = () => setEditable(false); 
 
     const save = () => {
-        const func = createFunction();
-        saveFormula(func);
+        dispatch(({
+            type: 'SET_JS_FUNCTION',
+            boxId,
+            func: new Function(`return ${formulaText}`)(),
+        }));
         disable();
     };
 
-    useEffect(() => {
-        setFormulaText(identityFn);
-        if (!args) return null;
-        const func = createFunction();
-        const output = func()(args);
+    const calculate = () => {
+        if (args === null || args === undefined) {
+            return null;
+        }
+        const output = state.boxes[boxId].func(args);
         setOutput(output);
-        console.log('inputSetter', inputSetter);
         inputSetter(output);
-    }, [args]);
+    };
 
     const handleChange = (e) => {
         setFormulaText(e.target.value);
     };
 
-    const calculate = () => {
-        if (!args) return null;
-        const func = createFunction();
-        const output = func()(args);
-        setOutput(output);
-        inputSetter(output);
-    };
+    useEffect(() => {
+        calculate();
+    }, [args]);
 
     return (
         <div className="formula">
-            <code-input lang="javascript" onBlur={handleChange} id={`${boxId}-input`} value={formulaText} placeholder={identityFn} disabled={!editable} />
+            <code-input lang="javascript" onBlur={handleChange} id={`${boxId}-input`} value={formulaText} placeholder={IDENTITY_FUNCTION} disabled={!editable} />
             <div className="buttons">
                 <button disabled={editable} onClick={enable}>Edit</button>
                 <button disabled={!editable} onClick={save}>Save</button>

@@ -1,8 +1,16 @@
 import { createContext } from 'use-context-selector';
 import { useReducer } from 'react';
 
-const initialState = { connections: [], currentCursorNodeArrow: null };
-const store = createContext(initialState);
+const INITIAL_STATE = {
+    connections: [],
+    currentCursorNodeArrow: null,
+    boxes: {},
+    discoveredDevices: {},
+    selectedOutput: null,
+    addedDevices: {}
+};
+
+const store = createContext(INITIAL_STATE);
 const { Provider } = store;
 
 const StateProvider = ({ children }) => {
@@ -44,16 +52,20 @@ const StateProvider = ({ children }) => {
                 return { ...state, boxes: {
                     ...state.boxes,
                     [action.boxId]: {
-                        previous: action.previous,
-                        next: action.next,
+                        boxId: action.boxId,
+                        func: (x) => x
                     }
                 }};
+            case 'REMOVE_BOX':
+                const remainingBoxes = { ...state.boxes };
+                delete remainingBoxes[action.boxId];
+                return { ...state, boxes: remainingBoxes }
             case 'SET_JS_FUNCTION':
                 return { ...state, boxes: {
                     ...state.boxes,
                     [action.boxId]: {
                         ...state.boxes[action.boxId],
-                        function: action.function,
+                        func: action.func,
                     }
                 }};
             case 'SET_BOX_INPUTS':
@@ -98,7 +110,7 @@ const StateProvider = ({ children }) => {
             default:
                 return state;
         }
-    }, initialState);
+    }, INITIAL_STATE);
 
     return <Provider value={{ state, dispatch }}>{children}</Provider>;
 };
