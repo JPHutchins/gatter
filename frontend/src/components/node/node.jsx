@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { useContext } from 'use-context-selector';
 import { store } from 'store';
 import { useXarrow } from 'react-xarrows';
@@ -55,6 +56,11 @@ const CursorNode = ({ nodeId, handleMouseDown }) => {
     );
 };
 
+CursorNode.propTypes = {
+    nodeId: PropTypes.string.isRequired,
+    handleMouseDown: PropTypes.func.isRequired,
+};
+
 const InputNode = ({ nodeId, selectedOutput, dispatch, className, setInputs }) => {
     const handleMouseUp = (e) => {
         if (selectedOutput !== null) {
@@ -72,6 +78,14 @@ const InputNode = ({ nodeId, selectedOutput, dispatch, className, setInputs }) =
             id={`${nodeId}`}
         >{'>'}</div>
     );
+};
+
+InputNode.propTypes = {
+    nodeId: PropTypes.string.isRequired,
+    selectedOutput: PropTypes.string,
+    dispatch: PropTypes.func.isRequired,
+    className: PropTypes.string.isRequired,
+    setInputs: PropTypes.func.isRequired,
 };
 
 const OutputNode = ({ nodeId, dispatch, className }) => {
@@ -94,13 +108,18 @@ const OutputNode = ({ nodeId, dispatch, className }) => {
         });
     };
 
-
     return (
         <>
             <div className={className} id={`${nodeId}`}>{'>'}</div>
             <CursorNode nodeId={nodeId} handleMouseDown={handleMouseDown} />
         </>
     );
+};
+
+OutputNode.propTypes = {
+    nodeId: PropTypes.string.isRequired,
+    dispatch: PropTypes.func.isRequired,
+    className: PropTypes.string.isRequired,
 };
 
 const Node = ({ direction, setNodeId, setInputs }) => {
@@ -140,6 +159,12 @@ const Node = ({ direction, setNodeId, setInputs }) => {
             />
         </div>
     );
+};
+
+Node.propTypes = {
+    direction: PropTypes.oneOf([NODE.INPUT, NODE.OUTPUT]),
+    setNodeId: PropTypes.func.isRequired,
+    setInputs: PropTypes.func
 };
 
 export default Node;
