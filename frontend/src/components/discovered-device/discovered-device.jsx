@@ -1,9 +1,9 @@
-import { useContext  } from 'use-context-selector';
+import { useContext } from 'use-context-selector';
 import { store } from 'store';
 
 const DiscoveredDevice = ({ discoveredDevice }) => {
     const globalState = useContext(store);
-    const { dispatch, state } = globalState;
+    const { dispatch } = globalState;
 
     const addDevice = async() => {
         const response = await fetch('http://localhost:8000/api/cmd/add', {
@@ -16,7 +16,8 @@ const DiscoveredDevice = ({ discoveredDevice }) => {
         });
         if (response.status === 200) {
             const addResponse = await response.json();
-            dispatch({ type: 'ADD_DEVICE', payload: { ...addResponse, ...discoveredDevice } });
+            const device = { ...addResponse, ...discoveredDevice };
+            dispatch({ type: 'ADD_DEVICE', device });
         }
         else {
             console.error('Device add failed.');

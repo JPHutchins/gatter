@@ -1,24 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useContext  } from 'use-context-selector';
-import { FunctionBox } from 'components';
+import { FunctionBox, Arrows } from 'components';
 import { DiscoveredDevice, DeviceBox, LogSettings } from 'components';
 import { store } from 'store';
-import Xarrow, { Xwrapper } from 'react-xarrows';
+import { Xwrapper } from 'react-xarrows';
 
 const Board = () => {
-    const [boxes, setBoxes] = useState([]);
-    const [discoveryOn, setDiscoveryOn] = useState(false);
-    const globalState = useContext(store);
-    const { dispatch, state } = globalState;
-    const { addedDevices = {}, discoveredDevices = {} } = state;
-    const deviceList = Object.values(discoveredDevices).sort((a, b) => b.rssiAverage - a.rssiAverage);
-    const deleteBox = (id) => {
-        setBoxes(boxes.filter((box) => box.id !== id));
-    };
+    const { dispatch, state } = useContext(store);
 
-    const addBox = () => {
-        setBoxes([...boxes, { id: Date.now() }]);
-    };
+    const [discoveryOn, setDiscoveryOn] = useState(false);
+
+    const deviceList = Object.values(state.discoveredDevices).sort((a, b) => b.rssiAverage - a.rssiAverage);
 
     const handleDiscoveryToggle = async() => {
         const newDiscoveryState = !discoveryOn;
@@ -30,52 +22,44 @@ const Board = () => {
         
         if (response.status === 200) {
             setDiscoveryOn(newDiscoveryState);
-        }
-        else {
-            console.error("Discovery request failed.")
+        } else {
+            console.error('Discovery request failed.')
         }
     };
 
-    const discoveredDeviceList = deviceList.map((device) => (
-        <DiscoveredDevice discoveredDevice={device} key={device.address} />
-    ));
-
-    const arrows = state.connections.map(({ start, end, offsetX = 0, offsetY = 0 }) => (
-        <Xarrow 
-            key={`key-${start}-${end}`}
-            start={start}
-            end={end}
-            endAnchor={{ position: "middle", offset: { x: offsetX, y: offsetY } }}
-        />
-    ))
-
-    const handleMouseUp = (e) => {
-        if (state?.selectedOutput !== null) {
+    const handleMouseUp = () => {
+        if (state.selectedOutput !== null) {
             dispatch({type: 'END_CURSOR_NODE_DRAG'})
         }
-    }
+    };
 
     return (
         <div id="board" onMouseUp={handleMouseUp}>
-            <button onClick={addBox}>Add Box</button>
-            <input type="checkbox" onChange={handleDiscoveryToggle} checked={discoveryOn}/>
+            <button onClick={() => dispatch({ type: 'ADD_BOX', boxId: Date.now() })}>Add Box</button>
+            <input type="checkbox" onChange={handleDiscoveryToggle} checked={discoveryOn} />
             <LogSettings/>
-            
-            {discoveredDeviceList}
-
+            {deviceList.map((device) => (
+                <DiscoveredDevice discoveredDevice={device} key={device.address} />
+            ))}
             <Xwrapper>
-                {boxes.map((box) => (
-                    <FunctionBox key={box.id} deleteBox={() => deleteBox(box.id)} boxId={box.id} />
+                {Object.values(state.boxes).map((box) => (
+                    <FunctionBox
+                        key={box.boxId}
+                        deleteBox={() => dispatch({ type: 'REMOVE_BOX', boxId: box.boxId })}
+                        boxId={box.boxId}
+                    />
                 ))}
-
-                {Object.values(addedDevices)?.map((device) => (
-                    <DeviceBox deviceId={device?.deviceId} key={device?.deviceId} device={device} />
+                {Object.values(state.addedDevices).map((device) => (
+                    <DeviceBox
+                        deviceId={device?.deviceId}
+                        key={device?.deviceId}
+                        device={device}
+                    />
                 ))}
-
-                {arrows}
+                <Arrows />
             </Xwrapper>
         </div>
     );
-}
+};
 
 export default Board;

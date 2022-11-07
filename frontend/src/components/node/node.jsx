@@ -1,19 +1,20 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { useContext } from 'use-context-selector';
 import { store } from 'store';
 import { useXarrow } from 'react-xarrows';
-
 import Draggable from 'react-draggable';
-
-import { useNextNodeId } from 'utils/hooks';
-
+import { makeUseNextId } from 'utils/hooks';
 import { NODE } from 'utils/constants';
 
-const CursorNode = ({ nodeId }) => {
+const CURSOR_SHIFT_HACK = 100;
+
+const useNextNodeId = makeUseNextId('node');
+
+const CursorNode = ({ nodeId, handleMouseDown }) => {
     const [activeDrags, setActiveDrags] = useState(1);
     const [deltaPosition, setDeltaPosition] = useState({ x: 0, y: 0 });
     const [position, setPosition] = useState(null);
-
     const nodeRef = useRef(null);
 
     const updateXarrow = useXarrow();
@@ -25,7 +26,8 @@ const CursorNode = ({ nodeId }) => {
         updateXarrow();
     };
 
-    const handleStart = () => {
+    const handleStart = (e) => {
+        handleMouseDown(e);
         setActiveDrags(activeDrags + 1);
     };
 
@@ -34,85 +36,156 @@ const CursorNode = ({ nodeId }) => {
         setPosition({ x: 0, y: 0 });
     };
 
-    const dragHandlers = { onStart: handleStart, onStop: handleStop, onDrag: handleDrag };
+    const dragHandlers = {
+        onStart: handleStart,
+        onStop: handleStop,
+        onDrag: handleDrag,
+    };
 
     return (
-        <Draggable cancel=".no-drag" nodeRef={nodeRef} {...dragHandlers} position={position}>
-            <div id={`cursor-node-${nodeId}`} className="cursor-node" ref={nodeRef}></div>
+        <Draggable
+            cancel=".no-drag"
+            nodeRef={nodeRef}
+            {...dragHandlers}
+            position={position}
+        >
+            <div
+                id={`cursor-${nodeId}`}
+                className="cursor-node"
+                ref={nodeRef}
+            />
         </Draggable>
     );
 };
 
+CursorNode.propTypes = {
+    nodeId: PropTypes.string.isRequired,
+    handleMouseDown: PropTypes.func.isRequired,
+};
 
-const Node = ({ direction }) => {
-    const nodeId = useNextNodeId();
-
-    const globalState = useContext(store);
-    const { dispatch, state } = globalState;
-
-    const [validHoverClassLabel, setValidHoverClassLabel] = useState("");
-    const [cursor, setCursor] = useState(<CursorNode nodeId={nodeId} />);
-
-    const selectedOutputClassLabel = nodeId === state?.selectedOutput ? "selected-output" : "";
-
-    const handleMouseEnter = () => {
-        if (direction === NODE.OUTPUT) {
-            setValidHoverClassLabel(state?.selectedOutput === null ? "valid-hover" : "");
-        }
-        if (direction === NODE.INPUT) {
-            setValidHoverClassLabel(state?.selectedOutput !== null ? "valid-hover" : "")
-        }
-    };
-
-
-
-    const handleMouseDown = (e) => {
-        e.preventDefault();  // catch the mouse down here
-
-        const rect = e.target.getBoundingClientRect();
-        /* get the x, y offset from the center of the node */
-        const offsetX = e.clientX - rect.left - ((rect.right - rect.left) / 2);
-        const offsetY = e.clientY - rect.top - ((rect.bottom - rect.top) / 2);
-
-        if (direction === NODE.OUTPUT) {
-            dispatch({
-                type: 'START_CURSOR_NODE_DRAG',
-                payload: {
-                    start: `node-${nodeId}`,
-                    end: `cursor-node-${nodeId}`,
-                    offsetX,
-                    offsetY
-                }
-            })
-        }
-    };
-
-
-    const handleMouseUp = (e) => {
-        if ((direction === NODE.INPUT) && (state?.selectedOutput !== null)) {
+const InputNode = ({ nodeId, selectedOutput, dispatch, className, setIncomingArgs }) => {
+    const handleMouseUp = () => {
+        if (selectedOutput !== null) {
             dispatch({
                 type: 'ADD_CONNECTION',
-                payload: { end: `node-${nodeId}` }
-            })
+                end: `${nodeId}`,
+                setIncomingArgs,
+            });
         }
     };
 
+    return (
+        <div
+            className={className}
+            onMouseUp={handleMouseUp}
+            id={`${nodeId}`}
+        >{'>'}</div>
+    );
+};
+
+InputNode.propTypes = {
+    nodeId: PropTypes.string.isRequired,
+    selectedOutput: PropTypes.string,
+    dispatch: PropTypes.func.isRequired,
+    className: PropTypes.string.isRequired,
+    setIncomingArgs: PropTypes.func.isRequired,
+};
+
+const OutputNode = ({ nodeId, dispatch, className }) => {
+    const handleMouseDown = (e) => {
+        e.preventDefault(); // catch the mouse down here
+        const rect = e.target.getBoundingClientRect();
+        /* get the x, y offset from the center of the node */
+        const offsetX = (e.clientX - rect.left - (rect.right - rect.left) / 2) + CURSOR_SHIFT_HACK;
+        const offsetY = (e.clientY - rect.top - (rect.bottom - rect.top) / 2) + CURSOR_SHIFT_HACK;
+
+        dispatch({
+            type: 'START_CURSOR_NODE_DRAG',
+            payload: {
+                start: `${nodeId}`,
+                end: `cursor-${nodeId}`,
+                offsetX,
+                offsetY,
+            },
+        });
+    };
 
     return (
-        <div>
-            <div
-                id={`node-${nodeId}`}
+        <>
+            <div className={className} id={`${nodeId}`}>{'>'}</div>
+            <CursorNode nodeId={nodeId} handleMouseDown={handleMouseDown} />
+        </>
+    );
+};
+
+OutputNode.propTypes = {
+    nodeId: PropTypes.string.isRequired,
+    dispatch: PropTypes.func.isRequired,
+    className: PropTypes.string.isRequired,
+};
+
+const Node = ({ direction, setOutputNodeId = null, setIncomingArgs }) => {
+    const { dispatch, state } = useContext(store);
+
+    const [validHoverClassLabel, setValidHoverClassLabel] = useState('');
+
+    const nodeIdRef = useRef(useNextNodeId());
+
+    useEffect(() => {
+        if (direction === NODE.INPUT) {
+            return;
+        }
+        if (setOutputNodeId === null) {
+            throw Error("setOutputNodeId must be defined for OutputNode!");
+        }
+        setOutputNodeId(nodeIdRef.current);
+    }, []);
+    
+    const isValidInputHover = state.selectedOutput !== null && direction === NODE.INPUT;
+    const isValidOutputHover = state.selectedOutput === null && direction === NODE.OUTPUT;
+    const isValidHover = isValidInputHover || isValidOutputHover;
+
+    const selectedOutputClassLabel = nodeIdRef.current === state.selectedOutput ? 'selected-output' : '';
+
+    const Component = direction === NODE.INPUT ? InputNode : OutputNode;
+
+    return (
+        <div
+            className={`node-wrapper ${direction}`}
+            onMouseLeave={() => setValidHoverClassLabel('')}
+            onMouseEnter={() => setValidHoverClassLabel(isValidHover ? 'valid-hover' : '')}
+        >
+            <Component
+                dispatch={dispatch}
+                nodeId={nodeIdRef.current}
+                selectedOutput={state.selectedOutput}
                 className={`node ${direction} ${selectedOutputClassLabel} ${validHoverClassLabel}`}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={() => setValidHoverClassLabel("")}
-                onMouseDown={handleMouseDown}
-                onMouseUp={handleMouseUp}
-            >
-                {cursor}
-            </div>
+                setIncomingArgs={setIncomingArgs}
+            />
         </div>
     );
+};
 
+Node.propTypes = {
+    /**
+     * A node represents an input to or output from another node.
+     */
+    direction: PropTypes.oneOf([NODE.INPUT, NODE.OUTPUT]),
+    /**
+     * Required for `InputNode`s, ignored for `OutputNode`s.
+     * 
+     * The `InputNode` will dispatch the `setIncomingArgs` callback when another component's
+     * `OutputNode` connects to it.  The `setIncomingArgs` callback may be called synchronously or
+     * asynchronously depending on the nature of the outputting node.
+     */
+     setIncomingArgs: PropTypes.func,
+    /**
+     * Required for `OutputNode`s, ignored for `InputNode`s.
+     * 
+     * The `OutputNode` will use the `setOutputNodeId` callback to pass its `nodeId` back to its
+     * parent.
+     */
+    setOutputNodeId: PropTypes.func,
 };
 
 export default Node;

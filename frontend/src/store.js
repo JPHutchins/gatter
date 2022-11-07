@@ -1,8 +1,16 @@
 import { createContext } from 'use-context-selector';
 import { useReducer } from 'react';
 
-const initialState = { connections: [] };
-const store = createContext(initialState);
+const INITIAL_STATE = {
+    connections: [],
+    currentCursorNodeArrow: null,
+    boxes: {},
+    discoveredDevices: {},
+    selectedOutput: null,
+    addedDevices: {}
+};
+
+const store = createContext(INITIAL_STATE);
 const { Provider } = store;
 
 const StateProvider = ({ children }) => {
@@ -11,66 +19,87 @@ const StateProvider = ({ children }) => {
             case 'SET_DISCOVERED_DEVICES':
                 return { ...state, discoveredDevices: {
                     ...state.discoveredDevices,
-                    ...action.payload
-                }
-            };
+                    ...action.discoveredDevices,
+                }};
             case 'SET_ADDED_DEVICES':
                 return { ...state, addedDevices: {
                     ...state.addedDevices,
                     ...action.payload
-                }
-            };
+                }};
             case 'ADD_DEVICE':
                 return { ...state, addedDevices: {
                     ...state.addedDevices,
-                    [action.payload.deviceId]: action.payload
-                }
-            };
+                    [action.device.deviceId]: action.device
+                }};
             case 'REMOVE_DEVICE':
                 const { [action.deviceId]: removedDevice, ...rest } = state.addedDevices;
                 return { ...state, addedDevices: rest };
             case 'UPDATE_STREAM':
-                const streamId = (action.payload.deviceId << 8) | action.payload.channelId;
+                const streamId = (action.deviceId << 8) | action.channelId;
                 return { ...state, streams: {
                     ...state.streams,
-                    [streamId]: action.payload
-                }
-            };
+                    [streamId]: action.stream
+                }};
             case 'SET_DEVICE_INFO':
                 return { ...state, addedDevices: {
                     ...state.addedDevices,
-                    [action.payload.deviceId]: {
-                        ...state.addedDevices[action.payload.deviceId],
-                        ...action.payload
+                    [action.deviceId]: {
+                        ...state.addedDevices[action.deviceId],
+                        ...action.device
+                    }
+                }};
+            case 'ADD_BOX':
+                return { ...state, boxes: {
+                    ...state.boxes,
+                    [action.boxId]: {
+                        boxId: action.boxId,
+                        func: (x) => x
+                    }
+                }};
+            case 'REMOVE_BOX':
+                const remainingBoxes = { ...state.boxes };
+                delete remainingBoxes[action.boxId];
+                return { ...state, boxes: remainingBoxes }
+            case 'SET_JS_FUNCTION':
+                return { ...state, boxes: {
+                    ...state.boxes,
+                    [action.boxId]: {
+                        ...state.boxes[action.boxId],
+                        func: action.func,
+                    }
+                }};
+            case 'SET_BOX_INPUTS':
+                return { ...state, boxes: {
+                    ...state.boxes,
+                    [action.boxId]: {
+                        ...state.boxes[action.boxId],
+                        inputs: action.inputs,
                     }
                 }}
             case 'START_CURSOR_NODE_DRAG':
                 return { 
                     ...state,
                     selectedOutput: action.payload.start,
-                    connections: [ 
-                        ...state.connections,
-                        action.payload
-                    ]
-                }
+                    currentCursorNodeArrow: action.payload
+                };
             case 'END_CURSOR_NODE_DRAG':
                 return { 
                     ...state,
                     selectedOutput: null,
-                    connections: [ 
-                        ...state.connections.filter(({start, end}) => (
-                            !((start === state.selectedOutput) && (end === `cursor-${state.selectedOutput}`))
-                        )),
-                    ]
-                }
+                    currentCursorNodeArrow: null,
+                };
             case 'ADD_CONNECTION':
                 return { 
                     ...state,
                     connections: [ 
                         ...state.connections,
-                        {start: state.selectedOutput, end: action.payload.end}
+                        {
+                            start: state.selectedOutput,
+                            end: action.end,
+                            setIncomingArgs: action.setIncomingArgs,
+                        }
                     ]
-                }
+                };
             case 'REMOVE_CONNECTION':
                 return { 
                     ...state,
@@ -81,7 +110,7 @@ const StateProvider = ({ children }) => {
             default:
                 return state;
         }
-    }, initialState);
+    }, INITIAL_STATE);
 
     return <Provider value={{ state, dispatch }}>{children}</Provider>;
 };

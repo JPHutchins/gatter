@@ -1,7 +1,7 @@
 import Draggable from 'react-draggable';
 import { useState, useRef } from 'react';
-import { Title } from 'components';
 import { useXarrow } from 'react-xarrows';
+
 
 const Box = ({ children }) => {
     const [activeDrags, setActiveDrags] = useState(0);
@@ -34,7 +34,6 @@ const Box = ({ children }) => {
         <Draggable cancel=".no-drag" nodeRef={nodeRef} {...dragHandlers}>
             <div className={`box ${collapsed ? 'collapsed' : ''}`} ref={nodeRef}>
                 <div className="box-contents no-drag">
-                    {/* <Title collapsed={collapsed} setCollapsed={setCollapsed} /> */}
                     {children}
                 </div>
             </div>

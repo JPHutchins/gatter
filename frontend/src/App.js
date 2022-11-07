@@ -7,6 +7,7 @@ import { store } from 'store';
 function App() {
     const globalState = useContext(store);
     const { dispatch, state } = globalState;
+
     useEffect(() => {
         const ws = new WebSocket('ws://localhost:8000/api/ws/streams');
         const ws2 = new WebSocket('ws://localhost:8000/api/ws/blediscovery');
@@ -20,14 +21,13 @@ function App() {
 
             dispatch({
                 type: 'UPDATE_STREAM',
-                payload: {
-                    deviceId: deviceId[0],
-                    channelId: channelId[0],
+                deviceId: deviceId[0],
+                channelId: channelId[0],
+                stream: {
                     length: length[0],
                     payload: payload,
                 }
             });
-
         };
 
         ws2.onmessage = async (message) => {
@@ -36,10 +36,9 @@ function App() {
 
             dispatch({
                 type: 'SET_DISCOVERED_DEVICES',
-                payload: discoveredDevices,
+                discoveredDevices,
             });
         };
-
     }, []);
 
     return <Board />;
