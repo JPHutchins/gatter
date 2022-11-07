@@ -25,7 +25,10 @@ const ByteParser = () => {
 
     const { groups } = state;
 
-    const _crossesGroup = (groups, startingSquare) => (endingSquare) => {
+    /**
+     * Return true if a hovered ending square would cross any defined group, else false.
+     */
+    const crossesGroup = (groups, startingSquare, endingSquare) => {
         if (startingSquare === endingSquare) {
             return false;
         }
@@ -48,17 +51,13 @@ const ByteParser = () => {
         }
         return false;
     }
-    /**
-     * Return true if a hovered ending square would cross any defined group, else false.
-     */
-    const crossesGroup = _crossesGroup(groups, startingSquare);
 
     /**
      * Start selecting a group or finalize selection of a group.
      * 
      * @param {number} i The byte offset (index) of the square that was clicked on.
      */
-    const handleSquareClick = (i) => () => {
+    const handleSquareClick = (i) => {
         if (startingSquare === null) {
             /* this click selects the starting square */
             setStartingSquare(i);
@@ -92,8 +91,8 @@ const ByteParser = () => {
      * 
      * @param {number} i The byte offset (index) of the square that was clicked on.
      */
-    const handleMouseEnter = (i) => () => {
-        if (startingSquare === null || crossesGroup(i)) {
+    const handleMouseEnter = (i) => {
+        if (startingSquare === null || crossesGroup(groups, startingSquare, i)) {
             /* not a valid ending square */
             setEndingSquare(null);
             return;
@@ -107,7 +106,7 @@ const ByteParser = () => {
      * 
      * @param {number} i The group to remove.  
      */
-    const handleGroupClick = (i) => () => {
+    const handleGroupClick = (i) => {
         groups.splice(i, 1);
         dispatch({
             type: 'SET_BYTE_PARSER_GROUPS',
@@ -238,7 +237,7 @@ const ByteParser = () => {
                 }
 
                 className = `byte-parser-square ${groupedClassName}`;
-                onClick = () => handleGroupClick(groupIndex)();
+                onClick = () => handleGroupClick(groupIndex);
 
                 break;
             }
@@ -255,8 +254,8 @@ const ByteParser = () => {
             const empty = byte === PADDING_TD ? 'empty' : '';
 
             className = `byte-parser-square ${start} ${end} ${middle} ${empty}`;
-            onClick = () => handleSquareClick(byteIndex)();
-            onMouseEnter = () => handleMouseEnter(byteIndex)();
+            onClick = () => handleSquareClick(byteIndex);
+            onMouseEnter = () => handleMouseEnter(byteIndex);
             onMouseLeave = () => setEndingSquare(null);
         }
         
