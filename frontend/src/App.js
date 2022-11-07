@@ -5,6 +5,8 @@ import { useContext } from 'use-context-selector';
 import { store } from 'store';
 import "@fontsource/fira-code"; 
 
+const { ipcRenderer } = window.require('electron');
+
 function App() {
     const globalState = useContext(store);
     const { dispatch, state } = globalState;
@@ -12,6 +14,9 @@ function App() {
     useEffect(() => {
         const ws = new WebSocket('ws://localhost:8000/api/ws/streams');
         const ws2 = new WebSocket('ws://localhost:8000/api/ws/blediscovery');
+
+        ipcRenderer.on('ADD_FUNCTION', () => dispatch({ type: 'ADD_BOX', boxId: Date.now() }));
+        ipcRenderer.on('ADD_PRINTER', () => dispatch({ type: 'ADD_PRINTER', boxId: Date.now() }));
 
         ws.onmessage = async(e) => {
             const buffer = await e.data.arrayBuffer();
