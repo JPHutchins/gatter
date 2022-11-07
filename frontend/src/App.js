@@ -3,6 +3,7 @@ import './static/css/main.scss';
 import { Board } from './components';
 import { useContext } from 'use-context-selector';
 import { store } from 'store';
+import "@fontsource/fira-code"; 
 
 function App() {
     const globalState = useContext(store);
