@@ -9,5 +9,6 @@ export { default as FunctionBox } from './function-box/function-box';
 export { default as JSFunction } from './js-function/js-function';
 export { default as LogSettings } from './log-settings/log-settings';
 export { default as Node } from './node/node';
+export { default as Printer } from './printer/printer';
 export { default as Title } from './title/title';
 
