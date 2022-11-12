@@ -5,6 +5,7 @@ const INITIAL_STATE = {
     connections: [],
     currentCursorNodeArrow: null,
     boxes: {},
+    printers: {},
     discoveredDevices: {},
     selectedOutput: null,
     addedDevices: {}
@@ -66,6 +67,13 @@ const StateProvider = ({ children }) => {
                             boxId: action.boxId,
                             func: (x) => x
                         }
+                    }
+                };
+            case 'ADD_PRINTER':
+                return {
+                    ...state, printers: {
+                        ...state.printers,
+                        [action.boxId]: { boxId: action.boxId }
                     }
                 };
             case 'REMOVE_BOX':

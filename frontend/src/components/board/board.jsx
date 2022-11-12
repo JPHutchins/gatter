@@ -1,4 +1,4 @@
-import { Arrows, DeviceBox, DiscoveredDevice, FunctionBox, LogSettings } from 'components';
+import { Arrows, DeviceBox, DiscoveredDevice, FunctionBox, LogSettings, Printer } from 'components';
 import { useState } from 'react';
 import { Xwrapper } from 'react-xarrows';
 import { store } from 'store';
@@ -34,7 +34,6 @@ const Board = () => {
 
     return (
         <div id="board" onMouseUp={handleMouseUp}>
-            <button onClick={() => dispatch({ type: 'ADD_BOX', boxId: Date.now() })}>Add Box</button>
             <input type="checkbox" onChange={handleDiscoveryToggle} checked={discoveryOn} />
             <LogSettings />
             {deviceList.map((device) => (
@@ -54,6 +53,9 @@ const Board = () => {
                         key={device?.deviceId}
                         device={device}
                     />
+                ))}
+                {Object.values(state.printers).map((box) => (
+                    <Printer key={box.boxId} boxId={box.boxId} />
                 ))}
                 <Arrows />
             </Xwrapper>
