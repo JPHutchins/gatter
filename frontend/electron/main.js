@@ -113,6 +113,10 @@ const template = [
                 label: 'Printer',
                 click: () => app.emit('ADD_PRINTER'),
             },
+            {
+                label: 'Byte Parser',
+                click: () => app.emit('ADD_BYTE_PARSER'),
+            },
         ]
     },
     {
@@ -174,5 +178,6 @@ app.on('ready', () => {
     mainWindow.webContents.on('did-finish-load', () => {
         app.on('ADD_FUNCTION', () => mainWindow.webContents.send('ADD_FUNCTION'));
         app.on('ADD_PRINTER', () => mainWindow.webContents.send('ADD_PRINTER'));
+        app.on('ADD_BYTE_PARSER', () => mainWindow.webContents.send('ADD_BYTE_PARSER'));
     });
 });

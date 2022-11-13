@@ -8,7 +8,8 @@ const INITIAL_STATE = {
     printers: {},
     discoveredDevices: {},
     selectedOutput: null,
-    addedDevices: {}
+    addedDevices: {},
+    byteParsers: {},
 };
 
 const store = createContext(INITIAL_STATE);
@@ -76,6 +77,16 @@ const StateProvider = ({ children }) => {
                         [action.boxId]: { boxId: action.boxId }
                     }
                 };
+            case 'ADD_BYTE_PARSER':
+                return {
+                    ...state, byteParsers: {
+                        ...state.byteParsers,
+                        [action.boxId]: {
+                            boxId: action.boxId,
+                            groups: [],
+                        }
+                    }
+                };
             case 'REMOVE_BOX':
                 const remainingBoxes = { ...state.boxes };
                 delete remainingBoxes[action.boxId];
@@ -132,10 +143,9 @@ const StateProvider = ({ children }) => {
                     ))
                 }
             case 'SET_BYTE_PARSER_GROUPS':
-                return {
-                    ...state,
-                    groups: action.groups
-                }
+                const byteParsers = { ...state.byteParsers };
+                byteParsers[action.boxId].groups = action.groups;
+                return { ...state, byteParsers };
             default:
                 return state;
         }

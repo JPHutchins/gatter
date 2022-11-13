@@ -1,11 +1,11 @@
-import React, { Fragment, useState } from 'react';
-import { useContext } from 'use-context-selector';
+import React, { Fragment, useEffect, useState } from 'react';
 import { store } from 'store';
+import { useContext } from 'use-context-selector';
 
 import { Box, Node } from 'components';
 import { NODE } from 'utils/constants';
 
-import { Uint8, DATA_TYPES_BY_LENGTH } from './helpers';
+import { DATA_TYPES_BY_LENGTH, Uint8 } from './helpers';
 
 const toHexString = (byte) => byte.toString(16).padStart(2, '0').toUpperCase();
 
@@ -13,17 +13,35 @@ const ROW_HEIGHT_PX = 16;
 const BYTES_IN_ROW = 8;
 const PADDING_TD = -1
 
-const ByteParser = () => {
-    const globalState = useContext(store);
-    const { dispatch, state } = globalState;
+const ByteParser = ({ boxId }) => {
+    const { dispatch, state } = useContext(store);
 
-    const TEST_DATA = Array.from(Uint8Array.from([65, 66, 67, 68, 0, 1, 2, 3, 0xff, 0xfe, 0xfd, 0xfc, 10, 0, 1, 2, 3, 0xff, 0xfe, 0xfd, 0xfc, 10]));
-    const BUFFER = Uint8Array.from([65, 66, 67, 68, 0, 1, 2, 3, 0xff, 0xfe, 0xfd, 0xfc, 10, 0, 1, 2, 3, 0xff, 0xfe, 0xfd, 0xfc, 10]);
+    /* this component's InputNode will dispatch the setIncomingArgs callback when another
+     * component's OutputNode connects to it */
+    const [incomingArgs, setIncomingArgs] = useState(Uint8Array.from([]));
+    const [outputNodeIds, setOutputNodeIds] = useState({});
 
     const [startingSquare, setStartingSquare] = useState(null);
     const [endingSquare, setEndingSquare] = useState(null);
 
-    const { groups } = state;
+    const { groups } = state.byteParsers[boxId];
+    const dataAsArray = Array.from(incomingArgs);
+
+    /* parse the values from each group of bytes according to its data type */
+    const parsedValues = groups.map(({ start, end, dataType }) => (
+        dataType.cast(incomingArgs, start, end - start + 1)
+    ));
+
+    useEffect(() => {
+        /* send the outputs to all connected nodes whenever incomingArgs changes */
+        parsedValues.forEach((parsedValue, i) => {
+            const outputNodeId = outputNodeIds[i];
+            state.connections.filter((connection) => connection.start === outputNodeId)
+                .forEach((outputConnection) => {
+                    outputConnection.setIncomingArgs(parsedValue);
+                });
+        })
+    }, [incomingArgs]);
 
     /**
      * Return true if a hovered ending square would cross any defined group, else false.
@@ -81,7 +99,8 @@ const ByteParser = () => {
             }
             dispatch({
                 type: 'SET_BYTE_PARSER_GROUPS',
-                groups: [...groups, {start, end, dataType: Uint8}].sort((a, b) => a.start - b.start)
+                groups: [...groups, { start, end, dataType: Uint8 }].sort((a, b) => a.start - b.start),
+                boxId,
             })
         }
     }
@@ -110,7 +129,8 @@ const ByteParser = () => {
         groups.splice(i, 1);
         dispatch({
             type: 'SET_BYTE_PARSER_GROUPS',
-            groups: groups
+            groups: groups,
+            boxId,
         })
     }
 
@@ -131,7 +151,7 @@ const ByteParser = () => {
         let groupsEndingInThisRow = 0;
 
         /* iterate each group of bytes and add the line, data options, and parsed values */
-        for (const [groupIndex, {start, end, dataType}] of groups.entries()) {
+        for (const [groupIndex, { start, end, dataType }] of groups.entries()) {
             if (!(end >= firstIndexOfRow && end < firstIndexOfRow + BYTES_IN_ROW)) {
                 continue;  /* group doesn't end in this row */
             }
@@ -148,7 +168,7 @@ const ByteParser = () => {
             /* calculate x offset percentage based on position of the group in the row */
             const x = (RIGHT_MOST_X_FRACTION - ((xEnd + xStart) / 2) / BYTES_IN_ROW) * 100;
             const y = (ROW_HEIGHT_PX / 2) + ROW_HEIGHT_PX * (groupsEndingInThisRow - 1);
-            
+
             lines.push(
                 <Fragment key={groupIndex}>
                     <line x1={`${x}%`} y1="0" x2={`${x}%`} y2={y} />
@@ -167,17 +187,18 @@ const ByteParser = () => {
                     ))
                 ]
             ), [])
-            
+
             /* create the data type change handler */
             const handleTypeChange = (groups, start, end, groupIndex) => (e) => {
                 for (const values of Object.values(DATA_TYPES_BY_LENGTH)) {
                     for (const dataType of values) {
                         if (e.target.value === dataType.name) {
                             const newGroups = [...groups]
-                            newGroups[groupIndex] = {start, end, dataType}
+                            newGroups[groupIndex] = { start, end, dataType }
                             dispatch({
                                 type: 'SET_BYTE_PARSER_GROUPS',
-                                groups: newGroups
+                                groups: newGroups,
+                                boxId,
                             })
                         }
                     }
@@ -190,19 +211,22 @@ const ByteParser = () => {
                 </select>
             );
 
-            /* parse the value from the group of bytes according to the selected data type */
-            const parsedValue = dataType.cast(BUFFER, start, groupLength);
+            const parsedValue = parsedValues[groupIndex];
             const prettyPrinted = dataType.name === "char" ? parsedValue : `[${parsedValue.join(', ')}]`;
-            
+
             convertedGroups.push(
                 <div key={groupIndex}>
                     {prettyPrinted}
                 </div>
             );
 
+            /* this component's OutputNode will use the setOutputNodeId callback to pass its nodeId
+            * back to this component */
+            const setOutputNodeId = (nodeId) => setOutputNodeIds({ ...outputNodeIds, [groupIndex]: nodeId });
+
             outputNodes.push(
                 <div key={groupIndex}>
-                    <Node direction={NODE.OUTPUT} />
+                    <Node direction={NODE.OUTPUT} setOutputNodeId={setOutputNodeId} />
                 </div>
             );
         }
@@ -223,7 +247,7 @@ const ByteParser = () => {
         let onMouseEnter = null;
         let onMouseLeave = null;
 
-        for (const [groupIndex, {start, end}] of groups.entries()) {
+        for (const [groupIndex, { start, end }] of groups.entries()) {
             if (byteIndex >= start && byteIndex <= end) {   // byte is part of a group
                 let groupedClassName = 'grouped';
                 if (byteIndex === start && byteIndex !== end) {
@@ -258,7 +282,7 @@ const ByteParser = () => {
             onMouseEnter = () => handleMouseEnter(byteIndex);
             onMouseLeave = () => setEndingSquare(null);
         }
-        
+
         return (
             <td
                 key={byteIndex}
@@ -280,7 +304,7 @@ const ByteParser = () => {
     const renderRows = () => {
         const rows = [];
 
-        for (let firstIndexOfRow = 0; firstIndexOfRow < TEST_DATA.length; firstIndexOfRow += BYTES_IN_ROW) {
+        for (let firstIndexOfRow = 0; firstIndexOfRow < dataAsArray.length; firstIndexOfRow += BYTES_IN_ROW) {
             const [lines, typeDropdowns, convertedGroups, outputNodes] = renderParsedGroups(firstIndexOfRow);
             rows.push(
                 <Fragment key={firstIndexOfRow}>
@@ -291,7 +315,7 @@ const ByteParser = () => {
                         }
                     </tr>
                     <tr>
-                        {TEST_DATA.concat(Array(BYTES_IN_ROW).fill(PADDING_TD))  // add padding
+                        {dataAsArray.concat(Array(BYTES_IN_ROW).fill(PADDING_TD))  // add padding
                             .slice(firstIndexOfRow, firstIndexOfRow + BYTES_IN_ROW)  // slice row
                             .reverse()  // bytes displayed right -> left; LSB ("index 0") in rightmost position
                             .map((byte, i) => {
@@ -327,7 +351,7 @@ const ByteParser = () => {
     return (
         <Box>
             <div className='byte-parser'>
-                <Node direction={NODE.INPUT} />
+                <Node direction={NODE.INPUT} setIncomingArgs={setIncomingArgs} />
                 <table>
                     <tbody>
                         {renderRows()}

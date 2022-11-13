@@ -1,4 +1,4 @@
-import { Arrows, DeviceBox, DiscoveredDevice, FunctionBox, LogSettings, Printer } from 'components';
+import { Arrows, ByteParser, DeviceBox, DiscoveredDevice, FunctionBox, LogSettings, Printer } from 'components';
 import { useState } from 'react';
 import { Xwrapper } from 'react-xarrows';
 import { store } from 'store';
@@ -56,6 +56,9 @@ const Board = () => {
                 ))}
                 {Object.values(state.printers).map((box) => (
                     <Printer key={box.boxId} boxId={box.boxId} />
+                ))}
+                {Object.values(state.byteParsers).map((box) => (
+                    <ByteParser key={box.boxId} boxId={box.boxId} />
                 ))}
                 <Arrows />
             </Xwrapper>
