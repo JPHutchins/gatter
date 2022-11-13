@@ -4,12 +4,12 @@ import { Xwrapper } from 'react-xarrows';
 import { store } from 'store';
 import { useContext } from 'use-context-selector';
 
-const Board = () => {
+const Board = ({ discoveredDevices }) => {
     const { dispatch, state } = useContext(store);
 
     const [discoveryOn, setDiscoveryOn] = useState(false);
 
-    const deviceList = Object.values(state.discoveredDevices).sort((a, b) => b.rssiAverage - a.rssiAverage);
+    const deviceList = Object.values(discoveredDevices).sort((a, b) => b.rssiAverage - a.rssiAverage);
 
     const handleDiscoveryToggle = async () => {
         const newDiscoveryState = !discoveryOn;

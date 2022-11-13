@@ -1,5 +1,5 @@
 import "@fontsource/fira-code";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { store } from 'store';
 import { useContext } from 'use-context-selector';
 import { Board } from './components';
@@ -8,8 +8,9 @@ import './static/css/main.scss';
 const { ipcRenderer } = window.require('electron');
 
 function App() {
-    const globalState = useContext(store);
-    const { dispatch, state } = globalState;
+    const { dispatch } = useContext(store);
+
+    const [discoveredDevices, setDiscoveredDevices] = useState({});
 
     useEffect(() => {
         const ws = new WebSocket('ws://localhost:8000/api/ws/streams');
@@ -37,18 +38,13 @@ function App() {
             });
         };
 
-        ws2.onmessage = async (message) => {
+        ws2.onmessage = (message) => {
             const discoveredDevice = JSON.parse(message.data);
-            const discoveredDevices = { ...state.discoveredDevices, [discoveredDevice.address]: discoveredDevice };
-
-            dispatch({
-                type: 'SET_DISCOVERED_DEVICES',
-                discoveredDevices,
-            });
+            setDiscoveredDevices((oldDiscoveredDevices) => ({ ...oldDiscoveredDevices, [discoveredDevice.address]: discoveredDevice }));
         };
     }, []);
 
-    return <Board />;
+    return <Board discoveredDevices={discoveredDevices} />;
 }
 
 export default App;
