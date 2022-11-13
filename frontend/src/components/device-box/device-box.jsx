@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useContextSelector  } from 'use-context-selector';
-import { Box, Accordion, Node } from 'components';
+import { Accordion, Box, Node } from 'components';
+import { useEffect, useState } from 'react';
 import { store } from 'store';
+import { useContextSelector } from 'use-context-selector';
 import { NODE } from 'utils/constants';
 
 const properties = {
-    read: async(deviceId, characteristic, setValue) => {
+    read: async (deviceId, characteristic, setValue) => {
         const response = await fetch('http://localhost:8000/api/ble/read/characteristic', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 deviceId: deviceId,
                 handle: characteristic.handle
             })
@@ -23,11 +23,11 @@ const properties = {
             console.error('Read failed.');
         }
     },
-    notify: async(deviceId, characteristic) => {
+    notify: async (deviceId, characteristic) => {
         const response = await fetch('http://localhost:8000/api/cmd/stream/start', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 streamId: characteristic.streamId
             })
         });
@@ -58,6 +58,8 @@ const Property = ({ property, characteristic, deviceId }) => {
     const [selectedFormatter, setSelectedFormatter] = useState('hex');
     const streamId = (characteristic?.streamId?.deviceId << 8) | characteristic?.streamId?.channelId;
     const stream = useContextSelector(store, ({ state }) => state.streams?.[streamId]) ?? {};
+    const connections = useContextSelector(store, ({ state }) => state.connections);
+    const bytes = stream.payload ? stream.payload : value;
     const payload = stream.payload ? Array.from(stream.payload) : Array.from(value);
     const action = properties[property];
     const formatter = formatters[selectedFormatter];
@@ -65,7 +67,19 @@ const Property = ({ property, characteristic, deviceId }) => {
     const id = property + characteristic.uuid + deviceId.toString(10);
     const handleChange = (event) => setSelectedFormatter(event.target.value);
 
-    return ( 
+    /* this component's OutputNode will use the setOutputNodeId callback to pass its nodeId
+     * back to this component */
+    const [outputNodeId, setOutputNodeId] = useState(null);
+
+    useEffect(() => {
+        /* send the outputs to all connected nodes whenever stream.payload changes */
+        connections.filter((connection) => connection.start === outputNodeId)
+            .forEach((outputConnection) => {
+                outputConnection.setIncomingArgs(bytes);
+            });
+    }, [stream.payload]);
+
+    return (
         <li className="property">
             <div className="controls">
                 <button onClick={() => action(deviceId, characteristic, setValue)}>{property}</button>
@@ -76,14 +90,14 @@ const Property = ({ property, characteristic, deviceId }) => {
                 </div>
             </div>
             <div className="ble-io-channel">
-                {property === "write" ? (
+                {/* {property === "write" ? (
                     <Node direction={NODE.INPUT} />
-                ) : (<div></div>)}
+                ) : (<div></div>)} */}
 
                 <div className="property-text-box">{formatted}&nbsp;</div>
 
                 {["read", "notify", "indicate"].includes(property) ? (
-                    <Node direction={NODE.OUTPUT} />
+                    <Node direction={NODE.OUTPUT} setOutputNodeId={setOutputNodeId} />
                 ) : (<div></div>)}
             </div>
         </li>
@@ -118,11 +132,11 @@ const Service = ({ service, deviceId }) => (
 const DeviceBox = ({ deviceId, device }) => {
     const deviceInfo = useContextSelector(store, ({ state }) => state.addedDevices?.[deviceId]) ?? {};
     const dispatch = useContextSelector(store, ({ dispatch }) => dispatch);
-    const connectDevice = async() => {
+    const connectDevice = async () => {
         const response = await fetch('http://localhost:8000/api/ble/connect', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 deviceId: deviceId
             })
         });
@@ -140,12 +154,12 @@ const DeviceBox = ({ deviceId, device }) => {
         const response = await fetch('http://localhost:8000/api/cmd/del', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 deviceId: deviceId,
             })
         });
         if (response.status === 200) {
-            dispatch({ type: 'REMOVE_DEVICE', deviceId, deviceInfo });   
+            dispatch({ type: 'REMOVE_DEVICE', deviceId, deviceInfo });
         }
         else {
             console.error('Delete failed.');
