@@ -1,10 +1,10 @@
-import { store } from 'store';
-import { useContext } from 'use-context-selector';
 import Xarrow from 'react-xarrows';
+import { store } from 'store';
+import { useContextSelector } from 'use-context-selector';
 
-const CursorArrow = ({ currentCursorNodeArrow }) => { 
+const CursorArrow = ({ currentCursorNodeArrow }) => {
     if (!currentCursorNodeArrow) return null;
-    const { start, end, offsetX = 0, offsetY = 0 } =  currentCursorNodeArrow;
+    const { start, end, offsetX = 0, offsetY = 0 } = currentCursorNodeArrow;
 
     return (
         <Xarrow
@@ -18,14 +18,13 @@ const CursorArrow = ({ currentCursorNodeArrow }) => {
 };
 
 const Arrows = () => {
-    const globalState = useContext(store);
-    const { state } = globalState;
-    const { currentCursorNodeArrow, connections } = state;
+    const currentCursorNodeArrow = useContextSelector(store, ({ state }) => state.currentCursorNodeArrow);
+    const connections = useContextSelector(store, ({ state }) => state.connections);
 
     return (
         <>
             {connections.map(({ start, end }) => (
-                <Xarrow 
+                <Xarrow
                     key={`key-${start}-${end}`}
                     start={start}
                     end={end}
