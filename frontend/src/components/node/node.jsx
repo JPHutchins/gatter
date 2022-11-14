@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { useContext } from 'use-context-selector';
-import { store } from 'store';
-import { useXarrow } from 'react-xarrows';
+import { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
-import { makeUseNextId } from 'utils/hooks';
+import { useXarrow } from 'react-xarrows';
+import { store } from 'store';
+import { useContextSelector } from 'use-context-selector';
 import { NODE } from 'utils/constants';
+import { makeUseNextId } from 'utils/hooks';
 
 const CURSOR_SHIFT_HACK = 100;
 
@@ -125,7 +125,8 @@ OutputNode.propTypes = {
 };
 
 const Node = ({ direction, setOutputNodeId = null, setIncomingArgs }) => {
-    const { dispatch, state } = useContext(store);
+    const dispatch = useContextSelector(store, ({ dispatch }) => dispatch);
+    const selectedOutput = useContextSelector(store, ({ state }) => state.selectedOutput);
 
     const [validHoverClassLabel, setValidHoverClassLabel] = useState('');
 
@@ -140,12 +141,12 @@ const Node = ({ direction, setOutputNodeId = null, setIncomingArgs }) => {
         }
         setOutputNodeId(nodeIdRef.current);
     }, []);
-    
-    const isValidInputHover = state.selectedOutput !== null && direction === NODE.INPUT;
-    const isValidOutputHover = state.selectedOutput === null && direction === NODE.OUTPUT;
+
+    const isValidInputHover = selectedOutput !== null && direction === NODE.INPUT;
+    const isValidOutputHover = selectedOutput === null && direction === NODE.OUTPUT;
     const isValidHover = isValidInputHover || isValidOutputHover;
 
-    const selectedOutputClassLabel = nodeIdRef.current === state.selectedOutput ? 'selected-output' : '';
+    const selectedOutputClassLabel = nodeIdRef.current === selectedOutput ? 'selected-output' : '';
 
     const Component = direction === NODE.INPUT ? InputNode : OutputNode;
 
@@ -158,7 +159,7 @@ const Node = ({ direction, setOutputNodeId = null, setIncomingArgs }) => {
             <Component
                 dispatch={dispatch}
                 nodeId={nodeIdRef.current}
-                selectedOutput={state.selectedOutput}
+                selectedOutput={selectedOutput}
                 className={`node ${direction} ${selectedOutputClassLabel} ${validHoverClassLabel}`}
                 setIncomingArgs={setIncomingArgs}
             />
@@ -178,7 +179,7 @@ Node.propTypes = {
      * `OutputNode` connects to it.  The `setIncomingArgs` callback may be called synchronously or
      * asynchronously depending on the nature of the outputting node.
      */
-     setIncomingArgs: PropTypes.func,
+    setIncomingArgs: PropTypes.func,
     /**
      * Required for `OutputNode`s, ignored for `InputNode`s.
      * 

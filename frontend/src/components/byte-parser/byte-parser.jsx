@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import { store } from 'store';
-import { useContext } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 
 import { Box, Node } from 'components';
 import { NODE } from 'utils/constants';
@@ -14,7 +14,8 @@ const BYTES_IN_ROW = 8;
 const PADDING_TD = -1
 
 const ByteParser = ({ boxId }) => {
-    const { dispatch, state } = useContext(store);
+    const dispatch = useContextSelector(store, ({ dispatch }) => dispatch);
+    const { byteParsers, connections } = useContextSelector(store, ({ state: { byteParsers, connections } }) => ({ byteParsers, connections }));
 
     /* this component's InputNode will dispatch the setIncomingArgs callback when another
      * component's OutputNode connects to it */
@@ -24,7 +25,7 @@ const ByteParser = ({ boxId }) => {
     const [startingSquare, setStartingSquare] = useState(null);
     const [endingSquare, setEndingSquare] = useState(null);
 
-    const { groups } = state.byteParsers[boxId];
+    const { groups } = byteParsers[boxId];
     const dataAsArray = Array.from(incomingArgs);
 
     /* parse the values from each group of bytes according to its data type */
@@ -36,7 +37,7 @@ const ByteParser = ({ boxId }) => {
         /* send the outputs to all connected nodes whenever incomingArgs changes */
         parsedValues.forEach((parsedValue, i) => {
             const outputNodeId = outputNodeIds[i];
-            state.connections.filter((connection) => connection.start === outputNodeId)
+            connections.filter((connection) => connection.start === outputNodeId)
                 .forEach((outputConnection) => {
                     outputConnection.setIncomingArgs(parsedValue);
                 });

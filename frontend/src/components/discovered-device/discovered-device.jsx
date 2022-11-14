@@ -1,15 +1,14 @@
-import { useContext } from 'use-context-selector';
 import { store } from 'store';
+import { useContextSelector } from 'use-context-selector';
 
 const DiscoveredDevice = ({ discoveredDevice }) => {
-    const globalState = useContext(store);
-    const { dispatch } = globalState;
+    const dispatch = useContextSelector(store, ({ dispatch }) => dispatch);
 
-    const addDevice = async() => {
+    const addDevice = async () => {
         const response = await fetch('http://localhost:8000/api/cmd/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 emitterType: 'ble',
                 address: discoveredDevice.address
             })
@@ -26,11 +25,11 @@ const DiscoveredDevice = ({ discoveredDevice }) => {
 
     return (
         <div className="discovered-device">
-            <br/>
+            <br />
             {discoveredDevice.address} {discoveredDevice.name}
-            <br/>RSSI: {discoveredDevice.rssi}
-            <br/>avg: {discoveredDevice.rssiAverage}
-            <br/>
+            <br />RSSI: {discoveredDevice.rssi}
+            <br />avg: {discoveredDevice.rssiAverage}
+            <br />
             <button onClick={addDevice}>Add</button>
         </div>
     );

@@ -1,18 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { store } from 'store';
-import { useContext } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 
 const IDENTITY_FUNCTION = '(x) => x;'
 
 const JSFunction = ({ args, boxId, setOutgoingArgs }) => {
-    const { dispatch, state } = useContext(store);
+    const dispatch = useContextSelector(store, ({ dispatch }) => dispatch);
+    const func = useContextSelector(store, ({ state }) => state.boxes[boxId].func);
 
     const [formulaText, setFormulaText] = useState(IDENTITY_FUNCTION);
     const [editable, setEditable] = useState(false);
     const [functionError, setFunctionError] = useState(false);
-    
+
     const enable = () => setEditable(true);
-    const disable = () => setEditable(false); 
+    const disable = () => setEditable(false);
 
     const save = () => {
         try {
@@ -32,7 +33,7 @@ const JSFunction = ({ args, boxId, setOutgoingArgs }) => {
     const calculate = () => {
         try {
             setFunctionError(false);
-            const output = state.boxes[boxId].func(args);
+            const output = func(args);
             setOutgoingArgs(output);
         } catch (e) {
             setFunctionError(true);

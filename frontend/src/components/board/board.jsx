@@ -2,10 +2,13 @@ import { Arrows, ByteParser, DeviceBox, DiscoveredDevice, FunctionBox, LogSettin
 import { useState } from 'react';
 import { Xwrapper } from 'react-xarrows';
 import { store } from 'store';
-import { useContext } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 
 const Board = ({ discoveredDevices }) => {
-    const { dispatch, state } = useContext(store);
+    const dispatch = useContextSelector(store, ({ dispatch }) => dispatch);
+    const { selectedOutput, boxes, addedDevices, printers, byteParsers } = useContextSelector(store, (
+        { state: { selectedOutput, boxes, addedDevices, printers, byteParsers } }) => (
+        { selectedOutput, boxes, addedDevices, printers, byteParsers }));
 
     const [discoveryOn, setDiscoveryOn] = useState(false);
 
@@ -27,7 +30,7 @@ const Board = ({ discoveredDevices }) => {
     };
 
     const handleMouseUp = () => {
-        if (state.selectedOutput !== null) {
+        if (selectedOutput !== null) {
             dispatch({ type: 'END_CURSOR_NODE_DRAG' })
         }
     };
@@ -40,24 +43,24 @@ const Board = ({ discoveredDevices }) => {
                 <DiscoveredDevice discoveredDevice={device} key={device.address} />
             ))}
             <Xwrapper>
-                {Object.values(state.boxes).map((box) => (
+                {Object.values(boxes).map((box) => (
                     <FunctionBox
                         key={box.boxId}
                         deleteBox={() => dispatch({ type: 'REMOVE_BOX', boxId: box.boxId })}
                         boxId={box.boxId}
                     />
                 ))}
-                {Object.values(state.addedDevices).map((device) => (
+                {Object.values(addedDevices).map((device) => (
                     <DeviceBox
                         deviceId={device?.deviceId}
                         key={device?.deviceId}
                         device={device}
                     />
                 ))}
-                {Object.values(state.printers).map((box) => (
+                {Object.values(printers).map((box) => (
                     <Printer key={box.boxId} boxId={box.boxId} />
                 ))}
-                {Object.values(state.byteParsers).map((box) => (
+                {Object.values(byteParsers).map((box) => (
                     <ByteParser key={box.boxId} boxId={box.boxId} />
                 ))}
                 <Arrows />

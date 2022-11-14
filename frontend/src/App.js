@@ -1,14 +1,14 @@
 import "@fontsource/fira-code";
 import { useEffect, useState } from 'react';
 import { store } from 'store';
-import { useContext } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 import { Board } from './components';
 import './static/css/main.scss';
 
 const { ipcRenderer } = window.require('electron');
 
 function App() {
-    const { dispatch } = useContext(store);
+    const dispatch = useContextSelector(store, ({ dispatch }) => dispatch);
 
     const [discoveredDevices, setDiscoveredDevices] = useState({});
 
