@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
 import { Box, Node } from 'components';
+import { useEffect, useRef, useState } from 'react';
 import { NODE } from 'utils/constants';
 
 const Printer = ({ deleteBox, boxId }) => {
@@ -8,13 +8,12 @@ const Printer = ({ deleteBox, boxId }) => {
     const [text, setText] = useState(textRef.current);
 
     const textareaRef = useRef();
-    
+
     /* this component's InputNode will dispatch the setIncomingArgs callback when another
      * component's OutputNode connects to it */
     const setIncomingArgs = (...args) => {
         textRef.current += '\n' + JSON.stringify(...args);
         setText(textRef.current);
-        
     };
 
     /* update the scroll AFTER text has rendered */

@@ -6,15 +6,19 @@ $byte-border: rgb(27, 27, 27);
     border-radius: 10px;
     border: 1px solid $dark-gray;
     background-color: white;
+
     .start {
         background-color: rgb(213, 216, 44);
     }
+
     .end {
         background-color: pink;
     }
+
     .middle {
         background-color: lightgray;
     }
+
     .empty {
         opacity: 0;
     }
@@ -26,46 +30,57 @@ td {
     font-size: small;
     user-select: none;
     box-sizing: border-box;
+
     &.byte-index {
         border: none;
         font-size: x-small;
     }
+
     &.byte-parser-square {
         border: 1.5px solid rgb(182, 182, 182);
         border-style: solid;
         border-width: 1.5px;
     }
+
     &.grouped {
         border-color: $byte-border;
         border-width: 1.5px;
     }
+
     &.left-boundary {
         border-color: $byte-border transparent $byte-border $byte-border;
     }
+
     &.right-boundary {
         border-color: $byte-border $byte-border $byte-border transparent;
     }
+
     &.interior {
         border-color: $byte-border transparent $byte-border transparent;
     }
+
     &.line-container {
         border: none;
         padding: 0;
+
         svg {
-            stroke: rgb(100,100,100);
+            stroke: rgb(100, 100, 100);
             stroke-width: 1;
         }
     }
+
     &.grid-cell {
         border: none;
         display: grid;
         grid-template-columns: 1fr 1fr $row-height;
         padding: 0;
+
         .type-dropdowns-container {
             grid-auto-rows: $row-height;
             display: grid;
             grid-auto-columns: auto;
             width: 100px;
+
             select {
                 font-family: 'Fira Code';
                 font-size: x-small;
@@ -75,10 +90,12 @@ td {
                 text-align: right;
             }
         }
+
         .converted-groups-container {
             grid-auto-rows: $row-height;
             height: 100%;
             width: 100px;
+
             div {
                 font-size: x-small;
                 max-width: 120px;
@@ -93,15 +110,21 @@ td {
                 user-select: text;
             }
         }
+
         .output-nodes-container {
             grid-auto-rows: $row-height;
             height: 100%;
+
             div {
                 position: relative;
+
+                &.cursor-node {
+                    position: absolute;
+                }
             }
         }
     }
-  }
+}
 
 table {
     border-spacing: 2px;

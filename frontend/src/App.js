@@ -1,9 +1,11 @@
+import "@fontsource/fira-code";
 import { useEffect } from 'react';
-import './static/css/main.scss';
-import { Board } from './components';
-import { useContext } from 'use-context-selector';
 import { store } from 'store';
-import "@fontsource/fira-code"; 
+import { useContext } from 'use-context-selector';
+import { Board } from './components';
+import './static/css/main.scss';
+
+const { ipcRenderer } = window.require('electron');
 
 function App() {
     const globalState = useContext(store);
@@ -13,7 +15,11 @@ function App() {
         const ws = new WebSocket('ws://localhost:8000/api/ws/streams');
         const ws2 = new WebSocket('ws://localhost:8000/api/ws/blediscovery');
 
-        ws.onmessage = async(e) => {
+        ipcRenderer.on('ADD_FUNCTION', () => dispatch({ type: 'ADD_BOX', boxId: Date.now() }));
+        ipcRenderer.on('ADD_PRINTER', () => dispatch({ type: 'ADD_PRINTER', boxId: Date.now() }));
+        ipcRenderer.on('ADD_BYTE_PARSER', () => dispatch({ type: 'ADD_BYTE_PARSER', boxId: Date.now() }));
+
+        ws.onmessage = async (e) => {
             const buffer = await e.data.arrayBuffer();
             const deviceId = new Uint8Array(buffer, 0, 1);
             const channelId = new Uint8Array(buffer, 1, 1);
