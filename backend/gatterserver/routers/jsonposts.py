@@ -47,6 +47,11 @@ async def add(add_command: models.AddCommand, response: Response):
     try:
         device_id = await emitter_manager.register_device(emitter_class, **kwargs)
         add_command.deviceId = device_id
+        add_command.streamId = (
+            list(emitter_manager[device_id].streams.keys())[0]  # type: ignore
+            if add_command.emitterType == models.RAMP_EMITTER_TYPE
+            else None
+        )
         return add_command
     except EmitterManagerError:
         response.status_code = status.HTTP_400_BAD_REQUEST

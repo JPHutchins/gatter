@@ -10,6 +10,7 @@ const INITIAL_STATE = {
     selectedOutput: null,
     addedDevices: {},
     byteParsers: {},
+    ramps: {},
 };
 
 const store = createContext(INITIAL_STATE);
@@ -32,17 +33,21 @@ const StateProvider = ({ children }) => {
                         [action.device.deviceId]: action.device
                     }
                 };
+            case 'ADD_RAMP':
+                return {
+                    ...state,
+                    ramps: {
+                        ...state.ramps,
+                        [action.device.deviceId]: action.device,
+                    },
+                    streams: {
+                        ...state.streams,
+                        [action.streamId]: action.callback,
+                    }
+                };
             case 'REMOVE_DEVICE':
                 const { [action.deviceId]: removedDevice, ...rest } = state.addedDevices;
                 return { ...state, addedDevices: rest };
-            case 'UPDATE_STREAM':
-                const streamId = (action.deviceId << 8) | action.channelId;
-                return {
-                    ...state, streams: {
-                        ...state.streams,
-                        [streamId]: action.stream
-                    }
-                };
             case 'SET_DEVICE_INFO':
                 return {
                     ...state, addedDevices: {

@@ -20,6 +20,10 @@ def test_add_and_delete():
         "address": None,
         "emitterType": models.RAMP_EMITTER_TYPE,
         "deviceId": 0,
+        "streamId": {
+            "channelId": 0,
+            "deviceId": 0,
+        },
     }
     response = client.post(models.API_CMD_ADD_PATH, data=json.dumps(command))
     assert response.status_code == 200
@@ -33,6 +37,10 @@ def test_add_and_delete():
         "address": None,
         "emitterType": models.RAMP_EMITTER_TYPE,
         "deviceId": 4,
+        "streamId": {
+            "channelId": 0,
+            "deviceId": 4,
+        },
     }
 
     command = {"deviceId": 2}
@@ -48,6 +56,10 @@ def test_add_and_delete():
         "address": None,
         "emitterType": models.RAMP_EMITTER_TYPE,
         "deviceId": 2,
+        "streamId": {
+            "channelId": 0,
+            "deviceId": 2,
+        },
     }
 
 
@@ -69,6 +81,10 @@ async def test_start_stream():
         "address": None,
         "emitterType": models.RAMP_EMITTER_TYPE,
         "deviceId": 0,
+        "streamId": {
+            "channelId": 0,
+            "deviceId": 0,
+        },
     }
 
     async def frontend_websocket_endpoint_task():
@@ -107,6 +123,7 @@ async def test_add_ble():
         "address": "aa:bb:...",
         "emitterType": models.BLE_EMITTER_TYPE,
         "deviceId": 5,
+        "streamId": None,
     }
 
 

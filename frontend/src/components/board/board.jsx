@@ -1,4 +1,4 @@
-import { Arrows, ByteParser, DeviceBox, DiscoveredDevice, FunctionBox, LogSettings, Printer } from 'components';
+import { Arrows, ByteParser, DeviceBox, DiscoveredDevice, FunctionBox, LogSettings, Printer, Ramp } from 'components';
 import { useState } from 'react';
 import { Xwrapper } from 'react-xarrows';
 import { store } from 'store';
@@ -6,9 +6,9 @@ import { useContextSelector } from 'use-context-selector';
 
 const Board = ({ discoveredDevices }) => {
     const dispatch = useContextSelector(store, ({ dispatch }) => dispatch);
-    const { selectedOutput, boxes, addedDevices, printers, byteParsers } = useContextSelector(store, (
-        { state: { selectedOutput, boxes, addedDevices, printers, byteParsers } }) => (
-        { selectedOutput, boxes, addedDevices, printers, byteParsers }));
+    const { selectedOutput, boxes, addedDevices, printers, byteParsers, ramps } = useContextSelector(store, (
+        { state: { selectedOutput, boxes, addedDevices, printers, byteParsers, ramps } }) => (
+        { selectedOutput, boxes, addedDevices, printers, byteParsers, ramps }));
 
     const [discoveryOn, setDiscoveryOn] = useState(false);
 
@@ -62,6 +62,9 @@ const Board = ({ discoveredDevices }) => {
                 ))}
                 {Object.values(byteParsers).map((box) => (
                     <ByteParser key={box.boxId} boxId={box.boxId} />
+                ))}
+                {Object.values(ramps).map((device) => (
+                    <Ramp key={device.deviceId} boxId={device.deviceId} device={device} />
                 ))}
                 <Arrows />
             </Xwrapper>

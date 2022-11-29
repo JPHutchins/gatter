@@ -117,6 +117,10 @@ const template = [
                 label: 'Byte Parser',
                 click: () => app.emit('ADD_BYTE_PARSER'),
             },
+            {
+                label: 'Ramp',
+                click: () => app.emit('ADD_RAMP'),
+            },
         ]
     },
     {
@@ -179,5 +183,6 @@ app.on('ready', () => {
         app.on('ADD_FUNCTION', () => mainWindow.webContents.send('ADD_FUNCTION'));
         app.on('ADD_PRINTER', () => mainWindow.webContents.send('ADD_PRINTER'));
         app.on('ADD_BYTE_PARSER', () => mainWindow.webContents.send('ADD_BYTE_PARSER'));
+        app.on('ADD_RAMP', () => mainWindow.webContents.send('ADD_RAMP'));
     });
 });

@@ -35,7 +35,7 @@ class Ramp(SignalGenerator):
         self._min: Union[float, int, None] = None
         self._val: Union[float, int, None] = None
 
-        self.configure(0, 10, 1, 0.001)
+        self.configure(0, 10, 1, 0.1)
 
         self._stream_id = models.StreamId(deviceId=device_id, channelId=0)
         print(self._stream_id)
