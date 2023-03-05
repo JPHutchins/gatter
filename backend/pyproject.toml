@@ -9,7 +9,7 @@ license = "MIT"
 python = ">=3.10,<3.11"
 pydantic = "^1.9.1"
 bleak = "^0.15.0"
-fastapi = "^0.79.0"
+fastapi = {extras = ["uvicorn"], version = "^0.92.0"}
 uvicorn = "^0.18.2"
 websockets = "^10.3"
 coloredlogs = "^15.0.1"
@@ -25,6 +25,9 @@ pytest-cov = "^3.0.0"
 tox = "^3.25.1"
 requests = "^2.28.1"
 pyinstaller = "^5.3"
+
+[tool.poetry.group.dev.dependencies]
+httpx = "^0.23.3"
 
 [tool.black]
 line-length = 100

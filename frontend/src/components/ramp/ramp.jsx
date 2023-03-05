@@ -6,8 +6,8 @@ import { NODE } from 'utils/constants';
 
 const Ramp = ({ device, boxId }) => {
     const dispatch = useContextSelector(store, ({ dispatch }) => dispatch);
-    // const streamIdInteger = (device.streamId.deviceId << 8) | device.streamId.channelId;
-    // const stream = useContextSelector(store, ({ state }) => state.streams?.[streamIdInteger]) ?? {};
+    const streamIdInteger = (device.streamId.deviceId << 8) | device.streamId.channelId;
+    const stream = useContextSelector(store, ({ state }) => state.streams?.[streamIdInteger]) ?? {};
     const connections = useContextSelector(store, ({ state }) => state.connections);
 
     const [incomingArgs, setIncomingArgs] = useState(null);
@@ -25,6 +25,13 @@ const Ramp = ({ device, boxId }) => {
     }, [incomingArgs]);
 
     const startStream = async () => {
+        dispatch({
+            type: 'ADD_RAMP',
+            device,
+            streamId: streamIdInteger,
+            callback: setIncomingArgs,
+        })
+
         const response = await fetch('http://localhost:8000/api/cmd/stream/start', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

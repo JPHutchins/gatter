@@ -2,7 +2,7 @@ const ByteCastProto = {
     cast(bytes, offset, len) {
         const view = new DataView(bytes.buffer, offset + bytes.byteOffset, len);
         const arrLength = len / this.size;
-        if (len % this.size != 0) {
+        if (len % this.size !== 0) {
             throw Error("Byte length, len, must be multiple of data type size, size.")
         }
         const arr = Array(arrLength);

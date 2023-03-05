@@ -124,7 +124,7 @@ OutputNode.propTypes = {
     className: PropTypes.string.isRequired,
 };
 
-const Node = ({ direction, setOutputNodeId = null, setIncomingArgs }) => {
+const Node = ({ setOutputNodeId, setIncomingArgs }) => {
     const dispatch = useContextSelector(store, ({ dispatch }) => dispatch);
     const selectedOutput = useContextSelector(store, ({ state }) => state.selectedOutput);
 
@@ -133,12 +133,6 @@ const Node = ({ direction, setOutputNodeId = null, setIncomingArgs }) => {
     const nodeIdRef = useRef(useNextNodeId());
 
     useEffect(() => {
-        if (direction === NODE.INPUT) {
-            return;
-        }
-        if (setOutputNodeId === null) {
-            throw Error("setOutputNodeId must be defined for OutputNode!");
-        }
         setOutputNodeId(nodeIdRef.current);
     }, []);
 

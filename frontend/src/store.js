@@ -16,6 +16,11 @@ const INITIAL_STATE = {
 const store = createContext(INITIAL_STATE);
 const { Provider } = store;
 
+const streamWorker = new Worker("worker.js");
+streamWorker.onmessage = (e) => {
+    console.log(e.data);
+}
+
 const StateProvider = ({ children }) => {
     const [state, dispatch] = useReducer((state, action) => {
         switch (action.type) {
@@ -34,16 +39,21 @@ const StateProvider = ({ children }) => {
                     }
                 };
             case 'ADD_RAMP':
+                const streams = {
+                    ...state.streams,
+                    [action.streamId]: ["f", "x", "f(x)"],
+                };
+                streamWorker.postMessage({
+                    "type": "streams",
+                    streams,
+                });
                 return {
                     ...state,
                     ramps: {
                         ...state.ramps,
                         [action.device.deviceId]: action.device,
                     },
-                    streams: {
-                        ...state.streams,
-                        [action.streamId]: action.callback,
-                    }
+                    streams: streams
                 };
             case 'REMOVE_DEVICE':
                 const { [action.deviceId]: removedDevice, ...rest } = state.addedDevices;
@@ -122,16 +132,24 @@ const StateProvider = ({ children }) => {
                     currentCursorNodeArrow: null,
                 };
             case 'ADD_CONNECTION':
+                const connections = [
+                    ...state.connections,
+                    {
+                        start: state.selectedOutput,
+                        end: action.end,
+                        // setIncomingArgs: action.setIncomingArgs,
+                    }
+                ];
+                streamWorker.postMessage({
+                    "type": "connections",
+                    connections,
+                });
+                streamWorker.onmessage = (e) => {
+                    console.log(e.data);
+                }
                 return {
                     ...state,
-                    connections: [
-                        ...state.connections,
-                        {
-                            start: state.selectedOutput,
-                            end: action.end,
-                            setIncomingArgs: action.setIncomingArgs,
-                        }
-                    ]
+                    connections
                 };
             case 'REMOVE_CONNECTION':
                 return {
